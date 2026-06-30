@@ -1,0 +1,23 @@
+# Root-level ignores (each sub-app also has its own .gitignore).
+# Dependencies and build output are NEVER committed.
+
+**/node_modules/
+**/.next/
+**/out/
+**/build/
+**/.turbo/
+**/*.tsbuildinfo
+**/next-env.d.ts
+
+# Real env files (only *.example variants are committed)
+**/.env
+**/.env.*
+!**/.env.example
+
+# OS / editor noise
+.DS_Store
+*.pem
+*.log
+
+# Temp HTML written during PDF generation
+**/.*.tmp.html

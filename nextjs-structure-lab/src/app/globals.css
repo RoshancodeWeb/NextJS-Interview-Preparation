@@ -1,0 +1,257 @@
+/* Global styles for the Structure Lab. Kept intentionally simple and
+   framework-free so the focus stays on Next.js routing concepts. */
+
+:root {
+  --bg: #0b1220;
+  --panel: #111a2e;
+  --panel-2: #16213d;
+  --border: #243049;
+  --text: #e6edf3;
+  --muted: #9fb0c8;
+  --brand: #4c8dff;
+  --brand-2: #7c5cff;
+  --accent: #29d3a3;
+  --warn: #ffb454;
+  --danger: #ff6b6b;
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; }
+
+html, body { padding: 0; margin: 0; }
+
+body {
+  background: radial-gradient(1200px 600px at 80% -10%, #1a2745 0%, var(--bg) 55%);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+a { color: var(--brand); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+code, pre, .mono {
+  font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+code {
+  background: #0d1730;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.1em 0.4em;
+  font-size: 0.88em;
+  color: #cfe0ff;
+}
+
+pre {
+  background: #0a1226;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  overflow-x: auto;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: #dbe7ff;
+}
+
+pre code { background: none; border: none; padding: 0; color: inherit; }
+
+/* ---- Layout chrome ---- */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 22px;
+  background: rgba(10, 17, 36, 0.82);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  color: var(--text);
+}
+.brand:hover { text-decoration: none; }
+.brand .logo {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  color: white;
+  font-weight: 900;
+}
+.site-header .links a { color: var(--muted); margin-left: 18px; font-size: 0.92rem; }
+.site-header .links a:hover { color: var(--text); }
+
+.container { max-width: 980px; margin: 0 auto; padding: 28px 22px 80px; }
+
+/* ---- Home ---- */
+
+.hero h1 { font-size: 2.1rem; margin: 8px 0 6px; line-height: 1.15; }
+.hero p { color: var(--muted); max-width: 70ch; }
+
+.category-title {
+  margin: 36px 0 14px;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+}
+
+.concept-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.concept-card {
+  display: block;
+  background: linear-gradient(180deg, var(--panel), var(--panel-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 16px 14px;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+.concept-card:hover {
+  text-decoration: none;
+  transform: translateY(-2px);
+  border-color: var(--brand);
+}
+.concept-card h3 { margin: 0 0 6px; font-size: 1.02rem; color: var(--text); }
+.concept-card p { margin: 0 0 10px; color: var(--muted); font-size: 0.9rem; }
+.concept-card .badge { font-size: 0.74rem; }
+
+/* ---- Reusable UI ---- */
+
+.badge {
+  display: inline-block;
+  background: #0d1730;
+  border: 1px solid var(--border);
+  color: #9fc1ff;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-family: "SF Mono", Menlo, monospace;
+  font-size: 0.8rem;
+}
+
+.back-link { color: var(--muted); font-size: 0.9rem; }
+.back-link:hover { color: var(--text); }
+
+.page-title { font-size: 1.7rem; margin: 14px 0 6px; }
+.page-sub { color: var(--muted); margin-top: 0; }
+
+.callout {
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin: 16px 0;
+  background: var(--panel);
+}
+.callout.info { border-left-color: var(--brand); }
+.callout.tip { border-left-color: var(--accent); }
+.callout.warn { border-left-color: var(--warn); }
+.callout.danger { border-left-color: var(--danger); }
+.callout .label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 4px;
+}
+.callout p:last-child { margin-bottom: 0; }
+.callout p:first-of-type { margin-top: 0; }
+
+.demo-box {
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin: 18px 0;
+  background: rgba(13, 23, 48, 0.5);
+}
+.demo-box > h4 { margin-top: 0; color: var(--accent); }
+
+.btn {
+  display: inline-block;
+  cursor: pointer;
+  border: 1px solid var(--brand);
+  background: linear-gradient(180deg, #2b66d9, #2050b8);
+  color: white;
+  border-radius: 9px;
+  padding: 9px 16px;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+.btn:hover { text-decoration: none; filter: brightness(1.08); }
+.btn.ghost { background: transparent; color: var(--text); border-color: var(--border); }
+.btn.danger { background: linear-gradient(180deg, #d94545, #b82020); border-color: var(--danger); }
+
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.stack > * + * { margin-top: 10px; }
+
+ul.clean { list-style: none; padding-left: 0; }
+ul.clean li { padding: 6px 0; border-bottom: 1px solid var(--border); }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.panel h4 { margin-top: 0; }
+
+.muted { color: var(--muted); }
+.tag { color: var(--brand-2); font-weight: 700; }
+
+/* Modal (intercepting routes demo) */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 7, 18, 0.7);
+  display: grid;
+  place-items: center;
+  z-index: 50;
+  padding: 20px;
+}
+.modal-card {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px;
+  max-width: 460px;
+  width: 100%;
+}
+
+/* Photo grid (gallery demo) */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+.photo-tile {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: white;
+  border: 1px solid var(--border);
+}

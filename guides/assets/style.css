@@ -1,0 +1,102 @@
+/* Shared stylesheet inlined into every generated guide PDF. */
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #1f2328;
+  line-height: 1.6;
+  font-size: 12pt;
+  margin: 0;
+}
+
+.guide { max-width: 100%; }
+
+h1, h2, h3, h4 {
+  line-height: 1.25;
+  font-weight: 700;
+  margin-top: 1.4em;
+  margin-bottom: 0.5em;
+}
+
+h1 {
+  font-size: 24pt;
+  border-bottom: 3px solid #0070f3;
+  padding-bottom: 0.2em;
+  margin-top: 0;
+  color: #0b1220;
+}
+
+h2 {
+  font-size: 17pt;
+  border-bottom: 1px solid #e1e4e8;
+  padding-bottom: 0.15em;
+  color: #0b1220;
+}
+
+h3 { font-size: 13.5pt; color: #24292f; }
+
+p, ul, ol { margin: 0.5em 0; }
+
+a { color: #0969da; text-decoration: none; }
+
+code {
+  font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-size: 10.5pt;
+}
+
+pre {
+  background: #0b1220;
+  color: #e6edf3;
+  padding: 12px 14px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 10pt;
+  line-height: 1.5;
+}
+
+pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font-size: 10pt;
+}
+
+blockquote {
+  margin: 0.8em 0;
+  padding: 0.4em 1em;
+  border-left: 4px solid #0070f3;
+  background: #eff6ff;
+  color: #1e3a5f;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.8em 0;
+  font-size: 10.5pt;
+}
+
+th, td {
+  border: 1px solid #d0d7de;
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+th { background: #f6f8fa; font-weight: 700; }
+
+tr:nth-child(even) td { background: #fafbfc; }
+
+hr { border: none; border-top: 1px solid #e1e4e8; margin: 1.5em 0; }
+
+ul, ol { padding-left: 1.4em; }
+
+li { margin: 0.25em 0; }
+
+strong { color: #0b1220; }
