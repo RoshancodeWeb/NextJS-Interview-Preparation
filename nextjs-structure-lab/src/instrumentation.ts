@@ -9,5 +9,8 @@ export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
     // Visible in the terminal when the dev/prod server starts.
     console.log("[instrumentation] register() ran on server startup");
+    //Afer this we can setup any Observability tools like Sentry for the performance tracking
   }
 }
+
+
