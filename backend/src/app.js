@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser"
 import taskRouter from "./routes/task.route.js"
+import { errorHandler } from "./middlewares/error.middleware.js";
 
 const app=express();
 
@@ -26,10 +27,7 @@ app.use((req,res)=>{
 });
 
 
-app.use((err,req,res,next)=>{
-    const errorStatus=err.status ?? 500;
-    res.status(errorStatus).json({success:false,message:err.message ?? "Internal Server Error"});
-});
+app.use(errorHandler);
 
 export default app;
 

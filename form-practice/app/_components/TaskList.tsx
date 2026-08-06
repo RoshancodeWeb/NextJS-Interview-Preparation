@@ -1,6 +1,7 @@
 "use client"
 import { Gender, useTaskContext } from '@/app/context/TaskContext'
 import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 type GenderFilter = Gender | "";
 
@@ -9,10 +10,14 @@ const fieldClass =
 
 const TaskList = () => {
 
-  const { taskList } = useTaskContext();
+  const { taskList,isLoading,deleteTask } = useTaskContext();
 
   const [searchValue, setSearchValue] = useState<string>("");
   const [genderFilter, setGenderFilter] = useState<GenderFilter>("");
+
+  // Holds the _id currently being deleted — not a boolean, so only that
+  // one row shows a spinner instead of every row at once.
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const isFiltering = searchValue.trim() !== "" || genderFilter !== "";
 
@@ -31,6 +36,19 @@ const TaskList = () => {
     setGenderFilter("");
   }
 
+
+  const handleDeletion=async(taskId:string)=>{
+     setDeletingId(taskId);
+     try {
+         const message=await deleteTask(taskId);
+         toast.success(message);
+     } catch (error) {
+        toast.error(error instanceof Error ? error?.message :"Could Not Delete The Task");
+     } finally {
+        setDeletingId(null);
+     }
+  }
+
   return (
     <section className='flex flex-col gap-4'>
 
@@ -38,7 +56,11 @@ const TaskList = () => {
       <div className='flex items-center justify-between gap-3'>
         <h2 className='text-lg font-semibold text-slate-900'>Saved Tasks</h2>
         <span className='rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-slate-600'>
-          {isFiltering ? `${filteredArray.length} of ${taskList.length}` : taskList.length}
+          {isLoading
+            ? '—'
+            : isFiltering
+              ? `${filteredArray.length} of ${taskList.length}`
+              : taskList.length}
         </span>
       </div>
 
@@ -62,7 +84,8 @@ const TaskList = () => {
             placeholder='Search by name…'
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
-            className={`${fieldClass} pl-9 pr-3`}
+            disabled={isLoading}
+            className={`${fieldClass} pl-9 pr-3 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400`}
           />
         </div>
 
@@ -73,7 +96,8 @@ const TaskList = () => {
             id='genderFilter'
             value={genderFilter}
             onChange={(e) => setGenderFilter(e.target.value as GenderFilter)}
-            className={`${fieldClass} cursor-pointer appearance-none pl-3 pr-9`}
+            disabled={isLoading}
+            className={`${fieldClass} cursor-pointer appearance-none pl-3 pr-9 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400`}
           >
             <option value=''>All genders</option>
             <option value='male'>Male</option>
@@ -101,7 +125,30 @@ const TaskList = () => {
       </div>
 
       {/* Results */}
-      {filteredArray.length === 0 ? (
+      {isLoading ? (
+        // Skeleton cards — same shape as a real row, so the layout doesn't jump
+        <ul className='flex animate-pulse flex-col gap-3' aria-busy='true' aria-label='Loading tasks'>
+          {[0, 1, 2].map((i) => (
+            <li key={i} className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
+              <div className='flex items-start justify-between gap-3'>
+                <div className='min-w-0 flex-1 space-y-2'>
+                  <div className='h-4 w-2/5 rounded bg-slate-200' />
+                  <div className='h-3 w-1/4 rounded bg-slate-100' />
+                </div>
+                <div className='flex shrink-0 items-center gap-2'>
+                  <div className='h-6 w-14 rounded-full bg-slate-100' />
+                  <div className='h-6 w-14 rounded-full bg-slate-100' />
+                  <div className='size-7 rounded-lg bg-slate-100' />
+                </div>
+              </div>
+              <div className='mt-3 flex gap-2'>
+                <div className='h-6 w-16 rounded-md bg-slate-100' />
+                <div className='h-6 w-16 rounded-md bg-slate-100' />
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : filteredArray.length === 0 ? (
         <div className='rounded-2xl border border-dashed border-slate-300 bg-white/60 p-8 text-center'>
           {taskList.length === 0 ? (
             <p className='text-sm text-slate-500'>No tasks yet — submit the form to add your first one.</p>
@@ -120,8 +167,8 @@ const TaskList = () => {
         </div>
       ) : (
         <ul className='flex flex-col gap-3'>
-          {filteredArray.map((task, index) => (
-            <li key={index} className='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300 hover:shadow-md'>
+          {filteredArray.map((task) => (
+            <li key={task._id} className={`rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300 hover:shadow-md ${deletingId === task._id ? 'pointer-events-none opacity-50' : ''}`}>
               <div className='flex items-start justify-between gap-3'>
                 <div className='min-w-0'>
                   <p className='truncate font-semibold text-slate-900'>{task.task || 'Untitled task'}</p>
@@ -134,6 +181,36 @@ const TaskList = () => {
                   <span className='rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium capitalize text-indigo-700'>
                     {task.gender}
                   </span>
+
+                  {/* Delete */}
+                  <button
+                    type='button'
+                    aria-label={`Delete task: ${task.task || 'Untitled task'}`}
+                    disabled={deletingId === task._id}
+                    className='rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500/30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-400'
+                    onClick={()=>{handleDeletion(task._id)}}
+                  >
+                    {deletingId === task._id ? (
+                      <svg
+                        className='size-4 animate-spin' viewBox='0 0 24 24' fill='none'
+                        stroke='currentColor' strokeWidth='2' strokeLinecap='round' aria-hidden='true'
+                      >
+                        <circle cx='12' cy='12' r='9' className='opacity-25' />
+                        <path d='M21 12a9 9 0 0 0-9-9' />
+                      </svg>
+                    ) : (
+                      <svg
+                        className='size-4' viewBox='0 0 24 24' fill='none' stroke='currentColor'
+                        strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'
+                      >
+                        <path d='M3 6h18' />
+                        <path d='M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2' />
+                        <path d='M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6' />
+                        <path d='M10 11v6' />
+                        <path d='M14 11v6' />
+                      </svg>
+                    )}
+                  </button>
                 </div>
               </div>
 

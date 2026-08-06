@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import TaskProvider from "./context/TaskContext";
-
+import { Toaster } from "sonner";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -32,7 +32,7 @@ export default function RootLayout({
         <TaskProvider>
           {children}
         </TaskProvider>
-
+        <Toaster position="top-right" richColors toastOptions={{duration:2000,closeButton:true,unstyled:false}} />
       </body>
     </html>
   );
