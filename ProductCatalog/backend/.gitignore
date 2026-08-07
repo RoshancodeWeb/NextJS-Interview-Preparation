@@ -1,0 +1,14 @@
+node_modules/
+
+# Environment — keep the example, ignore the real ones
+.env*
+!.env.example
+
+# Uploads: ignore the files, keep the folder
+/public/*
+!/public/.gitkeep
+
+# Generated
+*.log
+npm-debug.log*
+coverage/

@@ -16,11 +16,13 @@ export const errorHandler = (err, req, res, next) => {
 
     // 3. A `unique` index rejected the write
     if (err.code === 11000) {
-        const field = Object.keys(err.keyValue ?? {})[0] ?? "value";
-        return res.status(409).json({
-            success: false,
-            message: `That ${field} is already taken`,
-        });
+        const fields = Object.keys(err.keyValue ?? {});
+
+        const message = fields.length > 1
+            ? `That combination of ${fields.join(" and ")} already exists`
+            : `That ${fields[0] ?? "value"} is already taken`;
+
+        return res.status(409).json({ success: false, message });
     }
 
     // 4. Anything unrecognized is genuinely our fault
@@ -28,7 +30,7 @@ export const errorHandler = (err, req, res, next) => {
     const message =
         statusCode === 500 && process.env.NODE_ENV === "production"
             ? "Internal Server Error"
-            : err.message ?? "Internal Server Error";
+            : err.message || "Internal Server Error";
 
     res.status(statusCode).json({ success: false, message });
 
