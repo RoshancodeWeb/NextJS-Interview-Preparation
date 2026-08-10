@@ -30,29 +30,51 @@ const SignUp = () => {
 
 
 
-    const handleSubmit=async()=>{
-        const errors=[];
-        if(!userDetails.name.trim()) errors.push("Name Is Required");
-        if(!userDetails.email.trim()) errors.push("Email Is Required");
-        if(!userDetails.password.trim()) errors.push("Password Is Required");
-        if(!userDetails.email.trim()) errors.push("Confirm Passwor Is Required");
+    const handleSubmit = async (e:React.SubmitEvent) => {
+        e.preventDefault();
+        const errors = [];
+        if (!userDetails.name.trim()) errors.push("Name Is Required");
+        if (!userDetails.email.trim()) errors.push("Email Is Required");
+        if (!userDetails.password.trim()) errors.push("Password Is Required");
+        if (!userDetails.confirmpassword.trim()) errors.push("Confirm Password Is Required");
 
-        if(errors.length){
+        if (errors.length) {
             toast.error(errors.join(", "));
             return;
         }
 
-       
-        if(userDetails.password!==userDetails.confirmpassword){
+
+        if (userDetails.password !== userDetails.confirmpassword) {
             toast.error("Password Did Not Matched");
             return;
         }
 
         try {
-            const response=await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/user/signup`,userDetails);
+            const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/user/signup`, userDetails);
             toast.success(response.data.message);
+            setUserDetails({
+                name: "",
+                email: "",
+                password: "",
+                confirmpassword: ""
+            })
         } catch (error) {
-            
+            if (axios?.isAxiosError(error)) {
+
+                if (error?.response) {
+
+                    const data = error?.response?.data;
+
+                    return toast.error(data?.message);
+                }
+
+
+                return toast.error("Could Not Reach Server Is it running");
+            }
+
+
+            return toast.error(error instanceof Error ? error?.message : "Sign up could not be processed");
+
         }
 
 
@@ -63,7 +85,7 @@ const SignUp = () => {
             <div className='w-full max-w-md'>
 
                 {/* Card */}
-                <div className='flex flex-col gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8'>
+                <form onSubmit={handleSubmit} className='flex flex-col gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8'>
 
                     {/* Header */}
                     <header className='space-y-1'>
@@ -122,7 +144,7 @@ const SignUp = () => {
                                 name='password'
                                 autoComplete='new-password'
                                 value={userDetails.password}
-                                onChange={(e)=>{setUserDetails((prev)=>({...prev,password:e.target.value}))}}
+                                onChange={(e) => { setUserDetails((prev) => ({ ...prev, password: e.target.value })) }}
                                 placeholder='Enter Your Password'
                                 className={inputClass}
                             />
@@ -139,7 +161,7 @@ const SignUp = () => {
                                 name='confirmpassword'
                                 autoComplete='new-password'
                                 value={userDetails.confirmpassword}
-                                onChange={(e)=>{setUserDetails((prev)=>({...prev,confirmpassword:e.target.value}))}}
+                                onChange={(e) => { setUserDetails((prev) => ({ ...prev, confirmpassword: e.target.value })) }}
                                 placeholder='Re-enter your password'
                                 className={inputClass}
                             />
@@ -148,9 +170,9 @@ const SignUp = () => {
 
                     {/* Submit */}
                     <button
-                        type='button'
+                        type='submit'
                         className='w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 active:scale-[.99] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
-                        onClick={handleSubmit}
+                        
                     >
                         Sign Up
                     </button>
@@ -174,7 +196,7 @@ const SignUp = () => {
                             Login
                         </Link>
                     </p>
-                </div>
+                </form>
 
                 <p className='mt-6 text-center text-xs text-slate-400'>
                     By signing up you agree to our terms and privacy policy.

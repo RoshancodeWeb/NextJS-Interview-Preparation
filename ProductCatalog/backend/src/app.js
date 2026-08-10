@@ -22,6 +22,7 @@ app.use(cookieParser());
 app.use("/api/v1/user",userRouter);
 
 app.use((req,res)=>{
+    console.log("Route Not Found");
     res.status(404).json({success:false,message:`Route ${req.method} ${req.originalUrl} Not Found`})
 });
 
