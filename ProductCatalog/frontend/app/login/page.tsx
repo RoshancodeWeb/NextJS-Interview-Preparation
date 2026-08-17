@@ -1,6 +1,11 @@
 "use client"
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from "next/link"
+import axios from 'axios'
+import { toast } from 'sonner'
+import { User, useUserContext } from '../context/UserContext'
+import { useRedirectIfLoggedIn } from '../hooks/useRedirectIfLoggedIn'
+import api from '../lib/api'
 
 const labelClass =
     "text-sm font-medium text-slate-700"
@@ -20,13 +25,37 @@ const defaultCredentials: Credentials = {
 
 const Login = () => {
     const [credentials, setCredentials] = useState<Credentials>(defaultCredentials);
+    const {loggedInUserDetails,setLoggedInUserDetails}=useUserContext();
 
-    const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+    useRedirectIfLoggedIn();
+
+    const handleSubmit = async(e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        // API call goes here later.
-        console.log(credentials);
+        try{
+           const res=await api.post<{ success: boolean; data: User; message: string }>("/user/login",credentials);
+           setLoggedInUserDetails({_id:res.data.data._id,name:res.data.data.name,email:res.data.data.email});
+           
+           return toast.success(res.data.message);
+        }
+        catch(error){
+            if(axios.isAxiosError(error)){
+                if(error?.response){
+                    const data=error.response?.data;
+                    return toast.error(data.message);
+                }
+
+                return toast.error("Could Not Reach Server.Is it running");
+            }
+
+            return toast.error(error instanceof Error?error.message:"Something Went Wrong,Please Try Again");
+        }
+
+        
     }
+
+    if (loggedInUserDetails) return null;
+
 
     return (
         <main className='flex min-h-screen items-center justify-center bg-linear-to-br from-slate-50 via-white to-indigo-50 px-4 py-10 sm:py-16'>

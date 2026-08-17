@@ -22,6 +22,11 @@ export const errorHandler = (error, req, res, next) => {
     const errorStatus = error.statusCode ?? error.status ?? 500;
     const message = errorStatus == 500 && process.env.NODE_ENV == "production" ? "Internal Server Error" : error.message || "Internal Server Error";
     
-    res.status(errorStatus).json({ success: false, message });
+    const payload = { success: false, message };
+
+    // only string codes are ours — mongo's duplicate-key code is the number 11000
+    if (typeof error.code === "string") payload.code = error.code;
+
+    res.status(errorStatus).json(payload);
 
 }

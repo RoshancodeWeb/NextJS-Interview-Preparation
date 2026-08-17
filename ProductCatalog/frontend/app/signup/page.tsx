@@ -3,6 +3,9 @@ import React, { useState } from 'react'
 import Link from "next/link"
 import { toast } from 'sonner'
 import axios from 'axios'
+import { useRedirectIfLoggedIn } from '../hooks/useRedirectIfLoggedIn'
+import api from '../lib/api'
+import { useUserContext } from '../context/UserContext'
 
 const labelClass =
     "text-sm font-medium text-slate-700"
@@ -28,6 +31,11 @@ const SignUp = () => {
         confirmpassword: ""
     });
 
+    const {loggedInUserDetails}=useUserContext();
+
+    useRedirectIfLoggedIn();
+    
+    if (loggedInUserDetails) return null;
 
 
     const handleSubmit = async (e:React.SubmitEvent) => {
@@ -50,7 +58,7 @@ const SignUp = () => {
         }
 
         try {
-            const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/user/signup`, userDetails);
+            const response = await api.post("/user/signup", userDetails);
             toast.success(response.data.message);
             setUserDetails({
                 name: "",
