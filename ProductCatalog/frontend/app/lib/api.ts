@@ -1,68 +1,68 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios"
 
-/** Our own flag, so a retried request is never retried twice. */
-type RetriableRequest = InternalAxiosRequestConfig & { _retried?: boolean };
+type RetriableRequest=InternalAxiosRequestConfig & {_retried?:boolean}
 
-export const api = axios.create({
-    baseURL: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`,
-    withCredentials: true,   // cookies on every request — set once, can't be forgotten
+export const api=axios.create({
+    baseURL:`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`,
+    withCredentials:true
 });
 
-/**
- * If several requests 401 at the same moment we must NOT fire several refreshes.
- * Keeping the in-flight promise here means the first one does the work and the
- * rest just wait on it.
- */
-let refreshPromise: Promise<unknown> | null = null;
+let refreshPromise:Promise<unknown> | null=null;
 
-const refreshSession = () => {
-    if (!refreshPromise) {
-        refreshPromise = axios
-            .post(
-                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/user/refresh-token`,
-                {},
-                { withCredentials: true }
-            )
-            .finally(() => { refreshPromise = null; });
+const refreshSession=()=>{
+    if(!refreshPromise){
+        refreshPromise=axios.post(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/user/refresh-token`,
+            {},
+            {withCredentials:true}
+        ).finally(()=>{refreshPromise=null});
     }
+
     return refreshPromise;
-};
+}
+
+
 
 api.interceptors.response.use(
-    (response) => response,
+    (response)=>response,
+    async(error:AxiosError<{code?:string}>)=>{
+        const original=error.config as RetriableRequest;
+        const code=error.response?.data?.code;
 
-    async (error: AxiosError<{ code?: string }>) => {
-        const original = error.config as RetriableRequest | undefined;
-        const code = error.response?.data?.code;
+        // ONLY a token that aged out.
+        // NO_TOKEN means there was no cookie at all — and since both cookies
+        // share the same maxAge, no access cookie means no refresh cookie
+        // either. Refreshing cannot help, and treating it as refreshable sends
+        // logged-out visitors into a redirect loop.
+        const refreshable=code==="TOKEN_EXPIRED" || code==="NO_TOKEN";
 
-        // TOKEN_EXPIRED  → the token aged out
-        // NO_TOKEN       → the access cookie is gone, but the refresh one may live
-        // INVALID_TOKEN  → tampered. NEVER refresh this one.
-        const refreshable = code === "TOKEN_EXPIRED" || code === "NO_TOKEN";
+        const shouldRefresh=error.response?.status===401 &&
+                            refreshable &&
+                            original &&
+                            !original._retried;
 
-        const shouldRefresh =
-            error.response?.status === 401 &&
-            refreshable &&
-            original &&
-            !original._retried;
-
-        if (!shouldRefresh) {
+        if(!shouldRefresh){
             return Promise.reject(error);
         }
 
-        original._retried = true;
+        original._retried=true;
 
         try {
             await refreshSession();
-            return api(original);          // replay the original request
-        } catch {
-            // the refresh token is gone or reused — this is a real logout
-            if (typeof window !== "undefined") {
-                window.location.href = "/login";
+            return api(original);
+        } catch (refreshError) {
+            // never hard-redirect to /login when we are already on /login
+            const onAuthPage=typeof window !== "undefined" &&
+                             (window.location.pathname.startsWith("/login") ||
+                              window.location.pathname.startsWith("/signup"));
+
+            if(typeof window !== "undefined" && !onAuthPage){
+                window.location.href="/login";
             }
-            return Promise.reject(error);
+
+            return Promise.reject(refreshError);
         }
     }
-);
+)
 
 export default api;

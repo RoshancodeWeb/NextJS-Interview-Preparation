@@ -1,0 +1,1146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Product Catalog — Interview Q&amp;A</title>
+<style>
+  :root{
+    --ink:#0f172a; --ink-soft:#475569; --ink-faint:#64748b;
+    --bg:#ffffff; --card:#ffffff; --line:#e2e8f0; --line-soft:#f1f5f9;
+    --accent:#4f46e5; --accent-soft:#eef2ff;
+    --code-bg:#f8fafc; --code-ink:#1e293b;
+    --warn-bg:#fffbeb; --warn-line:#fcd34d; --warn-ink:#78350f;
+    --ok-bg:#f0fdf4; --ok-line:#86efac; --ok-ink:#14532d;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#e2e8f0; --ink-soft:#94a3b8; --ink-faint:#64748b;
+      --bg:#0f172a; --card:#1e293b; --line:#334155; --line-soft:#1e293b;
+      --accent:#818cf8; --accent-soft:#1e1b4b;
+      --code-bg:#0b1220; --code-ink:#cbd5e1;
+      --warn-bg:#292524; --warn-line:#a16207; --warn-ink:#fde68a;
+      --ok-bg:#052e16; --ok-line:#166534; --ok-ink:#bbf7d0;
+    }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  .wrap{max-width:52rem;margin:0 auto;padding:2.5rem 1.25rem 5rem}
+
+  /* ---- cover ---- */
+  .cover{padding:3rem 0 2rem;border-bottom:2px solid var(--line)}
+  .kicker{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  h1{font-size:2.4rem;line-height:1.15;margin:.6rem 0 .5rem;letter-spacing:-.02em}
+  .sub{color:var(--ink-soft);font-size:1.02rem;margin:0 0 1.4rem;max-width:38rem}
+  .meta{display:flex;flex-wrap:wrap;gap:.5rem}
+  .pill{background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:.25rem .7rem;font-size:.75rem;font-weight:600}
+
+  /* ---- toc ---- */
+  .toc{margin:2rem 0 0;border:1px solid var(--line);border-radius:12px;padding:1.25rem 1.5rem;background:var(--card)}
+  .toc h2{margin:0 0 .75rem;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);border:0;padding:0}
+  .toc ol{margin:0;padding-left:1.25rem;columns:2;column-gap:2rem}
+  @media (max-width:640px){.toc ol{columns:1}}
+  .toc li{margin:.2rem 0;break-inside:avoid}
+  .toc a{color:var(--ink);text-decoration:none}
+  .toc a:hover{color:var(--accent)}
+  .toc .cnt{color:var(--ink-faint);font-size:.8rem}
+
+  /* ---- sections ---- */
+  h2{
+    font-size:1.35rem;margin:3rem 0 .35rem;padding-top:1.25rem;
+    border-top:2px solid var(--line);letter-spacing:-.01em;
+  }
+  h2 .num{color:var(--accent);font-variant-numeric:tabular-nums}
+  .lead{color:var(--ink-soft);font-size:.92rem;margin:0 0 1.5rem}
+
+  /* ---- question card ---- */
+  .q{margin:0 0 1.5rem;padding-left:1rem;border-left:3px solid var(--line)}
+  .q:hover{border-left-color:var(--accent)}
+  .q h3{
+    font-size:1rem;margin:0 0 .5rem;line-height:1.45;font-weight:700;
+  }
+  .q h3 .n{
+    display:inline-block;min-width:2.7rem;color:var(--accent);
+    font-variant-numeric:tabular-nums;font-weight:800;font-size:.82rem;
+  }
+  .q p{margin:.5rem 0}
+  .q ul,.q ol{margin:.5rem 0;padding-left:1.3rem}
+  .q li{margin:.25rem 0}
+  strong{font-weight:700}
+  em{color:var(--ink-soft)}
+
+  /* ---- code ---- */
+  code{
+    font-family:ui-monospace,SFMono-Regular,"SF Mono",Consolas,"Liberation Mono",monospace;
+    font-size:.86em;background:var(--code-bg);color:var(--code-ink);
+    padding:.1em .35em;border-radius:4px;
+  }
+  pre{
+    background:var(--code-bg);border:1px solid var(--line);border-radius:8px;
+    padding:.85rem 1rem;overflow-x:auto;margin:.75rem 0;
+  }
+  pre code{background:none;padding:0;font-size:.82rem;line-height:1.55;display:block}
+
+  /* ---- callouts ---- */
+  .fu,.gotcha,.win{
+    border-radius:8px;padding:.6rem .85rem;margin:.7rem 0;font-size:.9rem;
+    border-left:3px solid;
+  }
+  .fu{background:var(--accent-soft);border-color:var(--accent)}
+  .gotcha{background:var(--warn-bg);border-color:var(--warn-line);color:var(--warn-ink)}
+  .win{background:var(--ok-bg);border-color:var(--ok-line);color:var(--ok-ink)}
+  .fu b,.gotcha b,.win b{display:block;font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.15rem;opacity:.85}
+
+  /* ---- rapid fire table ---- */
+  .rapid{width:100%;border-collapse:collapse;font-size:.9rem;margin:1rem 0}
+  .rapid td{border-bottom:1px solid var(--line-soft);padding:.55rem .5rem;vertical-align:top}
+  .rapid td:first-child{width:42%;font-weight:600}
+  .scroll{overflow-x:auto}
+
+  /* ---- print ---- */
+  .noprint{margin:1.5rem 0 0}
+  .btn{
+    background:var(--accent);color:#fff;border:0;border-radius:8px;
+    padding:.6rem 1.1rem;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit;
+  }
+  @page{size:A4;margin:15mm 14mm}
+  @media print{
+    :root{
+      --ink:#0f172a;--ink-soft:#475569;--ink-faint:#64748b;--bg:#fff;--card:#fff;
+      --line:#cbd5e1;--line-soft:#e2e8f0;--accent:#4338ca;--accent-soft:#eef2ff;
+      --code-bg:#f6f8fa;--code-ink:#111827;
+      --warn-bg:#fffbeb;--warn-line:#d97706;--warn-ink:#78350f;
+      --ok-bg:#f0fdf4;--ok-line:#16a34a;--ok-ink:#14532d;
+    }
+    body{font-size:10.5pt;background:#fff;color:#0f172a}
+    .wrap{max-width:none;padding:0}
+    .noprint{display:none}
+    h1{font-size:24pt}
+    h2{font-size:13pt;page-break-before:always;page-break-after:avoid;margin-top:0}
+    h2#s1{page-break-before:auto}
+    h3{page-break-after:avoid}
+    .q{page-break-inside:avoid;margin-bottom:.85rem}
+    pre{page-break-inside:avoid;font-size:8.5pt}
+    .toc{page-break-after:always}
+    .fu,.gotcha,.win{page-break-inside:avoid}
+    a{color:inherit;text-decoration:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="cover">
+  <div class="kicker">Interview Revision · Full-Stack (Next.js + Node)</div>
+  <h1>Product Catalog<br>Interview Q&amp;A</h1>
+  <p class="sub">
+    Every concept hit while building the Product Catalog app — auth, cookies, CORS, Mongoose,
+    Express error handling, promises, React state, the axios interceptor — written as the
+    questions an interviewer actually asks, with answers you can say out loud.
+  </p>
+  <div class="meta">
+    <span class="pill">Express 5</span>
+    <span class="pill">Mongoose 9</span>
+    <span class="pill">Next 16 / React 19</span>
+    <span class="pill">JWT + httpOnly cookies</span>
+    <span class="pill">Living document</span>
+  </div>
+  <div class="noprint">
+    <button class="btn" onclick="window.print()">Save as PDF</button>
+  </div>
+</header>
+
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#s1">CORS &amp; the Browser</a> <span class="cnt">Q1–10</span></li>
+    <li><a href="#s2">Cookies &amp; Session Security</a> <span class="cnt">Q11–19</span></li>
+    <li><a href="#s3">Request Body Parsing</a> <span class="cnt">Q20–23</span></li>
+    <li><a href="#s4">Passwords &amp; bcrypt</a> <span class="cnt">Q24–28</span></li>
+    <li><a href="#s5">JWT &amp; the Auth Flow</a> <span class="cnt">Q29–42</span></li>
+    <li><a href="#s6">Mongoose &amp; MongoDB</a> <span class="cnt">Q43–60</span></li>
+    <li><a href="#s7">Indexes</a> <span class="cnt">Q61–67</span></li>
+    <li><a href="#s8">Express &amp; Error Handling</a> <span class="cnt">Q68–79</span></li>
+    <li><a href="#s9">Promises &amp; async/await</a> <span class="cnt">Q80–92</span></li>
+    <li><a href="#s10">React &amp; Next.js</a> <span class="cnt">Q93–106</span></li>
+    <li><a href="#s11">axios &amp; the Interceptor</a> <span class="cnt">Q107–113</span></li>
+    <li><a href="#s12">TypeScript</a> <span class="cnt">Q114–119</span></li>
+    <li><a href="#s13">War Stories</a> <span class="cnt">real bugs</span></li>
+    <li><a href="#s14">Rapid Fire</a> <span class="cnt">one-liners</span></li>
+  </ol>
+</nav>
+
+
+<!-- ============ 1 ============ -->
+<h2 id="s1"><span class="num">1.</span> CORS &amp; the Browser</h2>
+<p class="lead">The single most common "explain how it works" question for a full-stack role, because it sits exactly on the seam between frontend and backend.</p>
+
+<div class="q">
+<h3><span class="n">Q1</span> What is CORS?</h3>
+<p>A browser security mechanism. By default the browser will not let JavaScript on one origin <em>read</em> a response from a different origin. CORS is how a server says "these specific origins are allowed to read my responses" — by sending particular response headers. The <code>cors</code> npm package just sets those headers for you.</p>
+<div class="fu"><b>The point that gets you the mark</b>
+CORS is enforced by the <strong>browser</strong>, not the server. Postman and curl ignore it completely. It is not a server-side protection.</div>
+</div>
+
+<div class="q">
+<h3><span class="n">Q2</span> What exactly is an "origin"?</h3>
+<p>Scheme + host + port. All three must match. <code>http://localhost:3000</code> and <code>http://localhost:8000</code> are different origins because the port differs — which is exactly why a local Next frontend talking to a local Express backend needs CORS at all. <code>http://</code> vs <code>https://</code> also differs.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q3</span> What does the same-origin policy actually block?</h3>
+<p>Not the sending. For a "simple" request the browser sends it, the server runs the handler, and the response comes back — the browser then refuses to hand it to JavaScript. So the side effect already happened. This is why CORS is not a substitute for authentication.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q4</span> What is a preflight request?</h3>
+<p>For requests that aren't "simple", the browser sends an <code>OPTIONS</code> request first to ask permission, carrying <code>Access-Control-Request-Method</code> and <code>Access-Control-Request-Headers</code>. If the server's reply allows it, the browser then sends the real request. If not, the real request is never sent at all.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q5</span> When does a preflight happen?</h3>
+<p>Whenever the request isn't simple. Simple means: method is GET, HEAD or POST; only safe headers; and <code>Content-Type</code> is one of <code>text/plain</code>, <code>multipart/form-data</code>, <code>application/x-www-form-urlencoded</code>.</p>
+<p>So sending JSON (<code>application/json</code>) triggers a preflight. So does any custom header, or PUT/PATCH/DELETE. In practice almost every API call in a real app is preflighted.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q6</span> Why is preflight necessary if the browser could just check afterwards?</h3>
+<p>Because some requests have side effects. A <code>DELETE</code> that reaches the server has already deleted something — blocking the response afterwards is too late. Preflight asks <em>before</em> anything happens, so a disallowed request never runs.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q7</span> Which headers does the browser check, and who sends them?</h3>
+<p>The <strong>server</strong> sends them; the <strong>browser</strong> reads and enforces them.</p>
+<ul>
+  <li><code>Access-Control-Allow-Origin</code> — which origin may read the response</li>
+  <li><code>Access-Control-Allow-Credentials: true</code> — cookies are permitted</li>
+  <li><code>Access-Control-Allow-Methods</code> / <code>-Headers</code> — the answers to a preflight</li>
+  <li><code>Access-Control-Max-Age</code> — how long the browser may cache the preflight result</li>
+</ul>
+</div>
+
+<div class="q">
+<h3><span class="n">Q8</span> What does <code>credentials</code> do, and why are there two halves?</h3>
+<p>Cookies are not sent cross-origin by default. Enabling them needs agreement from both sides:</p>
+<ul>
+  <li><strong>Frontend</strong> — <code>withCredentials: true</code> tells the browser to attach cookies to the request.</li>
+  <li><strong>Backend</strong> — <code>credentials: true</code> in the cors options sets <code>Access-Control-Allow-Credentials: true</code>, telling the browser it may hand the response to JS.</li>
+</ul>
+<p>Miss either one and cookies silently do nothing — no error, just an unauthenticated request.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q9</span> Why can't you use <code>origin: "*"</code> together with credentials?</h3>
+<p>The spec forbids it, and the browser rejects the response. <code>*</code> means "any website", and "any website, and send the user's cookies too" would let a malicious page make fully authenticated requests as the logged-in user. With credentials you must name the exact origin.</p>
+<pre><code>app.use(cors({
+  origin: process.env.CORS_ORIGIN ?? "http://localhost:3000",
+  credentials: true
+}));</code></pre>
+</div>
+
+<div class="q">
+<h3><span class="n">Q10</span> So does CORS protect my server?</h3>
+<p>No. It protects <em>users of other websites</em> from having their browser used against your API. Your server itself is unprotected — anything that isn't a browser ignores CORS entirely. Real protection is authentication and authorization.</p>
+</div>
+
+
+<!-- ============ 2 ============ -->
+<h2 id="s2"><span class="num">2.</span> Cookies &amp; Session Security</h2>
+<p class="lead">Where XSS and CSRF questions always land.</p>
+
+<div class="q">
+<h3><span class="n">Q11</span> What does <code>cookieParser()</code> do?</h3>
+<p>Cookies arrive as one string header: <code>Cookie: accessToken=abc; refreshToken=xyz</code>. cookie-parser splits that into an object on <code>req.cookies</code>. Without it, <code>req.cookies</code> is <code>undefined</code> and every auth check silently fails.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q12</span> What does each cookie flag protect against?</h3>
+<ul>
+  <li><code>httpOnly: true</code> — JavaScript cannot read the cookie via <code>document.cookie</code>. Limits XSS token theft.</li>
+  <li><code>secure: true</code> — only sent over HTTPS. Stops network sniffing.</li>
+  <li><code>sameSite: "strict"</code> — not attached to requests started by another site. Stops CSRF.</li>
+</ul>
+<pre><code>const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "strict"
+};</code></pre>
+</div>
+
+<div class="q">
+<h3><span class="n">Q13</span> XSS vs CSRF — what's the difference?</h3>
+<ul>
+  <li><strong>XSS</strong> — the attacker gets <em>their</em> JavaScript running on <em>your</em> page. They can then do anything the user can, and read anything the page can.</li>
+  <li><strong>CSRF</strong> — the attacker's site causes the user's browser to send a request to your site, relying on the cookie being attached automatically. They cannot read the response, but the side effect already happened.</li>
+</ul>
+<p>Short version: XSS is code running where it shouldn't. CSRF is a request being sent from where it shouldn't.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q14</span> How is this app protected from each?</h3>
+<p><strong>XSS:</strong> tokens are in httpOnly cookies, so injected script can't read them. React also escapes rendered values by default.</p>
+<p><strong>CSRF:</strong> <code>sameSite: "strict"</code> means the browser won't attach our cookies to a request initiated by another origin.</p>
+<div class="gotcha"><b>Be honest about this</b>
+httpOnly does not <em>prevent</em> XSS — it limits the damage. An attacker with script execution can still make requests as the user; they just can't steal the token to use elsewhere.</div>
+</div>
+
+<div class="q">
+<h3><span class="n">Q15</span> Why store the JWT in an httpOnly cookie instead of localStorage?</h3>
+<p>localStorage is readable by any JavaScript on the page — one XSS and the token is exfiltrated. httpOnly cookies are invisible to JS. The trade-off is that cookies are sent automatically, which introduces CSRF risk, and that's what <code>sameSite</code> handles. Cookies also mean you never manage an <code>Authorization</code> header by hand.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q16</span> Why does the access <em>cookie</em> deliberately outlive the access <em>token</em>?</h3>
+<p>This is a subtle one and a good answer to have ready.</p>
+<p>If the cookie expired at the same moment as the token, the browser would simply stop sending it. <code>jwt.verify</code> would never run, so we'd never get a <code>TokenExpiredError</code> — we'd get "no token at all" instead, and the refresh flow would never trigger.</p>
+<p>Letting the cookie live as long as the refresh token makes the JWT's own <code>exp</code> the single thing that decides. One source of truth for expiry.</p>
+<pre><code>const REFRESH_COOKIE_MAX_AGE = durationToMs(process.env.REFRESH_TOKEN_EXPIRY, 7*24*60*60*1000);
+const ACCESS_COOKIE_MAX_AGE  = REFRESH_COOKIE_MAX_AGE;   // intentionally the same</code></pre>
+</div>
+
+<div class="q">
+<h3><span class="n">Q17</span> What must <code>clearCookie</code> match?</h3>
+<p>The same <code>path</code>, <code>domain</code>, <code>sameSite</code> and <code>secure</code> values used when the cookie was set. If they differ the browser keeps the old cookie and you get the very confusing "logged out but still logged in" state.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q18</span> Why does logout need a server call at all?</h3>
+<p>Two reasons. Only the server can invalidate the stored refresh token, and only a server response can clear an httpOnly cookie — JavaScript can't touch it. Clearing React state alone would leave a fully working session sitting on disk.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q19</span> What if the logout request itself fails?</h3>
+<p>Clear the local state anyway. The user asked to leave and the UI must reflect that. Surface the failure, but never trap someone in a logged-in interface because a network call didn't land.</p>
+<pre><code>try   { await api.post("/user/logout"); }
+catch { toast.error("Could not reach server, logged out locally"); }
+finally { setLoggedInUserDetails(null); }   // always</code></pre>
+</div>
+
+
+<!-- ============ 3 ============ -->
+<h2 id="s3"><span class="num">3.</span> Request Body Parsing</h2>
+
+<div class="q">
+<h3><span class="n">Q20</span> <code>express.json()</code> vs <code>express.urlencoded()</code> — what does each convert?</h3>
+<ul>
+  <li><code>express.json()</code> handles <code>Content-Type: application/json</code>. Body arrives as the raw text <code>{"email":"a@b.com"}</code>; it parses that into an object.</li>
+  <li><code>express.urlencoded()</code> handles <code>application/x-www-form-urlencoded</code>. Body arrives as <code>email=a%40b.com&amp;age=20</code>; it parses that into an object. This is what a plain HTML <code>&lt;form&gt;</code> sends.</li>
+</ul>
+<p>Each only touches its own content type. The wrong parser does nothing at all — silently.</p>
+<div class="gotcha"><b>Bug I actually shipped</b>
+I registered <code>express.json()</code> twice instead of adding <code>express.urlencoded()</code>. Form posts arrived with <code>req.body</code> undefined and nothing anywhere said why.</div>
+</div>
+
+<div class="q">
+<h3><span class="n">Q21</span> What does <code>extended: true</code> mean?</h3>
+<p>Which library parses the query-string syntax. <code>false</code> uses Node's <code>querystring</code> — flat key/value only. <code>true</code> uses <code>qs</code>, which supports nesting and arrays, so <code>user[name]=Ali&amp;tags[]=a&amp;tags[]=b</code> becomes a real nested object.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q22</span> Why <code>limit: "16kb"</code>?</h3>
+<p>A cap on body size. Without it, someone can POST a huge payload and exhaust server memory — a cheap denial-of-service. 16kb is plenty for JSON forms. File uploads should not go through this at all; they belong in a streaming parser like multer.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q23</span> In Express 5, what is <code>req.body</code> when there's no body?</h3>
+<p><code>undefined</code>, not <code>{}</code>. Express 4 gave you an empty object. So <code>const { email } = req.body</code> now <em>throws</em> instead of quietly giving you undefined. Guard with <code>req.body ?? {}</code>, or make sure the parser actually ran for that content type.</p>
+</div>
+
+
+<!-- ============ 4 ============ -->
+<h2 id="s4"><span class="num">4.</span> Passwords &amp; bcrypt</h2>
+
+<div class="q">
+<h3><span class="n">Q24</span> If the salt is random, how does bcrypt compare a password later?</h3>
+<p>The salt isn't secret and isn't stored separately — it's <strong>embedded in the hash string</strong>. A bcrypt hash looks like:</p>
+<pre><code>$2b$10$N9qo8uLOickgx2ZMRZoMye.IjZAgcfl7p92ldGxad68LJZdL17lhW
+ |   |  |                     |
+ |   |  22-char salt          the actual digest
+ |   cost factor (10)
+ algorithm version</code></pre>
+<p><code>bcrypt.compare</code> reads the cost and salt back out of the stored hash, hashes the incoming password exactly the same way, and compares the results.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q25</span> What are salt rounds?</h3>
+<p>The cost factor. Work is <code>2^rounds</code>, so 10 means 1024 iterations of the key setup, and every +1 doubles the time. It's deliberately slow so that brute-forcing a stolen database of hashes is expensive. You raise it as hardware gets faster.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q26</span> Why hash in a <code>pre('save')</code> hook instead of in the controller?</h3>
+<p>So it can't be forgotten. Signup, password reset, an admin creating a user, a seed script — all of them go through <code>save()</code>, so all of them get hashing. Put it in one controller and the next controller you write leaks plaintext.</p>
+<p>It's the model's job to know how a password is stored. The controller shouldn't have an opinion.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q27</span> Why the <code>isModified</code> guard?</h3>
+<pre><code>userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+  this.password = await bcrypt.hash(this.password, 10);
+});</code></pre>
+<p>Every <code>save()</code> runs the hook. On login we save the user again to store a new refresh token — without the guard we'd hash the <em>already hashed</em> password, and the user could never log in again. It's a real, silent, account-destroying bug.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q28</span> Why is <code>verifyPassword</code> a schema method rather than bcrypt in the controller?</h3>
+<p>The model owns how a password is checked. The controller just asks "is this correct?". If the algorithm ever changes — bcrypt to argon2, say — one file changes instead of every login path.</p>
+</div>
+
+
+<!-- ============ 5 ============ -->
+<h2 id="s5"><span class="num">5.</span> JWT &amp; the Auth Flow</h2>
+<p class="lead">The centre of gravity for this project. Expect the whole section as one long conversation.</p>
+
+<div class="q">
+<h3><span class="n">Q29</span> What is a JWT?</h3>
+<p>Three base64url-encoded parts joined by dots: <code>header.payload.signature</code>. The header names the algorithm, the payload holds claims (we put <code>_id</code>, <code>email</code>, <code>name</code>, plus <code>iat</code> and <code>exp</code>), and the signature is an HMAC of the first two parts using a server-side secret.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q30</span> Is a JWT encrypted?</h3>
+<p><strong>No — it's signed, not encrypted.</strong> Anyone holding the token can base64-decode the payload and read it. Never put anything secret in there. The signature only proves the token wasn't altered and came from someone holding the secret.</p>
+<div class="fu"><b>Common trap</b>
+Interviewers love asking this because so many candidates say "encrypted". Say <em>signed</em>, and say <em>why it matters</em>: no passwords, no PII beyond what's already public to that user.</div>
+</div>
+
+<div class="q">
+<h3><span class="n">Q31</span> Why two tokens instead of one?</h3>
+<p>It's a trade-off between exposure and convenience.</p>
+<ul>
+  <li><strong>Access token</strong> — short-lived (15m), sent on every request. Highly exposed, but if stolen it dies quickly.</li>
+  <li><strong>Refresh token</strong> — long-lived (7d), used only to mint new access tokens. Rarely exposed, and it's stored in the DB so it <em>can</em> be revoked.</li>
+</ul>
+<p>A single long-lived token would be the worst of both: constantly exposed and impossible to revoke.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q32</span> JWTs are stateless — so how do you log someone out?</h3>
+<p>You can't invalidate an access token that's already issued. That's the genuine cost of statelessness. Instead you keep it short-lived and revoke the <em>refresh</em> token by clearing it from the user document. Once the access token expires — minutes later — the session is really dead.</p>
+<p>If you need instant revocation, you're back to server-side sessions or a token denylist, and you've given up statelessness.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q33</span> What is refresh token rotation and why do it?</h3>
+<p>Every time a refresh token is used it is consumed, and a brand-new one is issued and saved. The old one is immediately invalid.</p>
+<p>Two benefits: a stolen refresh token is only useful until the real user next refreshes, and if both the attacker and the user try to use the same token, one of them fails — which is a detectable signal that something is wrong.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q34</span> Walk me through your login flow.</h3>
+<ol>
+  <li><code>POST /login</code> with email and password</li>
+  <li>Find the user with <code>.select('+password')</code> — the field is <code>select: false</code> by default</li>
+  <li><code>bcrypt.compare</code>, via the schema's <code>verifyPassword</code> method</li>
+  <li>Generate access + refresh tokens from schema methods</li>
+  <li>Store the refresh token on the user document</li>
+  <li>Set both as httpOnly cookies and return the user object</li>
+</ol>
+<p>No token ever appears in the JSON body. Cookies only.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q35</span> What happens when the access token expires?</h3>
+<ol>
+  <li>Protected request → <code>verifyJWT</code> → <code>jwt.verify</code> throws <code>TokenExpiredError</code></li>
+  <li>Middleware converts that to a 401 carrying <code>code: "TOKEN_EXPIRED"</code></li>
+  <li>The axios response interceptor sees the code, calls <code>/refresh-token</code> once, then replays the original request</li>
+  <li>The user sees nothing at all</li>
+</ol>
+</div>
+
+<div class="q">
+<h3><span class="n">Q36</span> Why refresh only on <code>TOKEN_EXPIRED</code> and not on <code>INVALID_TOKEN</code>?</h3>
+<p><em>Expired</em> means the token was genuinely ours and simply aged out — refreshing is the correct response. <em>Invalid</em> means it was tampered with or signed with a different secret; refreshing can't fix that and just wastes a round trip before failing anyway.</p>
+<div class="fu"><b>Say this part out loud</b>
+Branch on a machine-readable <code>code</code>, never on the message text. You will reword a message one day and silently break the client.</div>
+</div>
+
+<div class="q">
+<h3><span class="n">Q37</span> What is <code>original._retried</code> for?</h3>
+<p><code>original</code> is <code>error.config</code> — the config of the request that failed. <code>_retried</code> is <strong>our own</strong> flag, not an axios property; the underscore is convention for "mine, added on". It marks "this request has already been through the refresh path".</p>
+<p>Without it, if the replayed request also 401s, the interceptor refreshes again, and again, forever. It's a one-attempt guard.</p>
+<p><code>!original._retried</code> reads as "hasn't been retried yet" — on the first pass the property doesn't exist, so <code>!undefined</code> is <code>true</code>.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q38</span> Why is there a single shared refresh promise?</h3>
+<p>Because a page load fires several requests at once. If <code>/me</code>, <code>/products</code> and <code>/cart</code> all 401 together, you'd send three refresh calls. With rotation, the first rotates the token and the other two arrive holding an already-consumed one — so they fail and log the user out.</p>
+<pre><code>let refreshPromise = null;
+
+const refreshSession = () => {
+  if (!refreshPromise) {
+    refreshPromise = axios.post(url, {}, { withCredentials: true })
+                          .finally(() => { refreshPromise = null; });
+  }
+  return refreshPromise;
+};</code></pre>
+<p>All three <code>await</code> the same promise, so exactly one refresh happens; then each replays its own original request. <code>.finally</code> clears the slot so the next expiry starts fresh.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q39</span> Tell me about a bug you debugged.</h3>
+<p><strong>The infinite refresh loop.</strong> The app would sit on the login page reloading forever.</p>
+<p>The refresh controller correctly returned 401 when the refresh token was dead — but it never sent <code>Set-Cookie</code>. So the dead cookies stayed in the browser. Every reload ran the identical cycle: <code>/me</code> → 401 → refresh → 401 → redirect to <code>/login</code> → <code>/me</code> again.</p>
+<p>My first hypothesis was wrong — I blamed the <code>NO_TOKEN</code> branch. The evidence killed it: removing that branch didn't stop the loop. Which meant the cause had to be <em>state that survived across reloads</em>, and the only such state was the cookies.</p>
+<pre><code>catch (error) {
+  // the session is unrecoverable — remove the cookies so the next
+  // page load starts clean instead of repeating a doomed request
+  res.clearCookie("accessToken", cookieOptions)
+     .clearCookie("refreshToken", cookieOptions);
+  ...
+}</code></pre>
+<div class="win"><b>The transferable lesson</b>
+An auth failure must leave the client in a <em>changed</em> state. If nothing changes, retrying is guaranteed to repeat — that's the definition of a loop.</div>
+</div>
+
+<div class="q">
+<h3><span class="n">Q40</span> Is clearing cookies on refresh failure standard practice?</h3>
+<p>Yes. If the refresh token is expired, invalid or revoked, the session is unrecoverable — there is no path back except logging in. Leaving the cookies in place guarantees the client repeats a doomed request on every page load and hammers your server. Clear them.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q41</span> Why a <code>code</code> field on your errors?</h3>
+<p>The message is for humans and will get reworded. A code is a contract the frontend can rely on. Our <code>ApiError</code> takes <code>(statusCode, message, code)</code> and the handler only forwards the code when it's a string — because Mongo's duplicate-key code is the number <code>11000</code>, and the client must never try to branch on that.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q42</span> Where's the remaining CSRF risk, and what covers it?</h3>
+<p>Cookies attach automatically, so in principle a malicious site could trigger a state-changing request. <code>sameSite: "strict"</code> stops the browser attaching our cookies to cross-site-initiated requests, which covers it here.</p>
+<p>For production across subdomains, or where you need <code>sameSite: "none"</code>, you add a CSRF token — a value the server issues that the client must echo in a header, which an attacker's site can't read.</p>
+</div>
+
+
+<!-- ============ 6 ============ -->
+<h2 id="s6"><span class="num">6.</span> Mongoose &amp; MongoDB</h2>
+
+<div class="q">
+<h3><span class="n">Q43</span> What is MongoDB, and what is Mongoose?</h3>
+<p><strong>MongoDB</strong> is the database — document-oriented, storing BSON documents inside collections, schema-less by default.</p>
+<p><strong>Mongoose</strong> is an ODM (Object Document Mapper) — a Node library on top of the MongoDB driver that adds schemas, validation, type casting, middleware hooks, and a friendlier query API. The schema lives in your app, not in the database.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q44</span> Schema vs Model vs Document?</h3>
+<ul>
+  <li><strong>Schema</strong> — the shape and the rules</li>
+  <li><strong>Model</strong> — the class compiled from the schema; you query through it (<code>User.findOne()</code>)</li>
+  <li><strong>Document</strong> — one record, one instance (<code>const user = await User.findById(id)</code>)</li>
+</ul>
+</div>
+
+<div class="q">
+<h3><span class="n">Q45</span> What are <code>.pre()</code>, <code>.methods</code>, <code>.statics</code> and <code>.set()</code> called?</h3>
+<ul>
+  <li><code>.pre()</code> / <code>.post()</code> — <strong>middleware</strong> (also called hooks)</li>
+  <li><code>.methods</code> — <strong>instance methods</strong>, live on a document: <code>user.verifyPassword()</code></li>
+  <li><code>.statics</code> — <strong>static methods</strong>, live on the model: <code>User.findByEmail()</code></li>
+  <li><code>.set()</code> — <strong>schema options</strong></li>
+  <li><code>.virtual()</code> — <strong>virtuals</strong>, computed fields never stored in the DB</li>
+</ul>
+</div>
+
+<div class="q">
+<h3><span class="n">Q46</span> Instance method or static — how do you choose?</h3>
+<p>Instance if it needs <em>this document's</em> data (verify this user's password, generate this user's token). Static if it operates on the collection (find a user by email).</p>
+<p>Rule of thumb: if you find yourself passing the document in as an argument to a static, it should have been an instance method.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q47</span> You set <code>select: false</code> on password — why did the API still return it?</h3>
+<p>Because <code>select: false</code> only applies to <strong>queries</strong>. <code>User.create()</code> returns the document you just built in memory — nothing was queried, so nothing was excluded.</p>
+<p>That's why the <code>toJSON</code> transform exists: it strips the field on the way out, regardless of how the document was produced.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q48</span> What does the <code>toJSON</code> transform actually do?</h3>
+<pre><code>userSchema.set("toJSON", {
+  transform: (doc, ret) => {
+    delete ret.password;
+    delete ret.refreshToken;
+    delete ret.__v;
+    return ret;
+  }
+});</code></pre>
+<p>The chain is worth being able to recite: <code>res.json(user)</code> calls <code>JSON.stringify(user)</code>. <code>JSON.stringify</code> checks whether the object has a <code>toJSON()</code> method and, if so, stringifies that method's return value instead. Mongoose implements <code>toJSON</code>, and your transform edits the plain object it builds. The document in memory is untouched — only the output changes.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q49</span> Then what is <code>select: false</code> still doing?</h3>
+<p>Defence in depth at a different layer. It keeps the hash out of query results entirely — not sitting in memory in every controller, not caught by an accidental <code>console.log</code>, not spread into another object.</p>
+<p><code>toJSON</code> guards the response. <code>select: false</code> guards everything else. That's also why login must explicitly opt back in with <code>.select('+password')</code>.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q50</span> So Mongoose "automatically knows" to strip those fields?</h3>
+<p>Not automatically — it does it because <em>you configured</em> <code>toJSON</code>. Nothing is magic. <code>res.json</code> serialises, serialising consults <code>toJSON</code>, and <code>toJSON</code> is where your rule lives.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q51</span> Why does an object have to be "serialized" to travel over a network?</h3>
+<p>A network carries bytes. A JavaScript object exists in memory as references and pointers, which mean nothing to another process on another machine.</p>
+<p>Serializing means flattening it into a byte sequence in an agreed format — JSON text here. The receiver parses those bytes back into its own object. The two objects are <strong>copies</strong>, not the same thing.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q52</span> "So only text can travel over the network?"</h3>
+<p>Only <em>bytes</em> can. Text is one way of encoding bytes, and JSON is a text format, so JSON travels as UTF-8 bytes. Images, video and file uploads travel as bytes too — just not text-shaped ones. The rule is: bytes on the wire, structure agreed by convention on both ends.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q53</span> Why did you remove <code>next</code> from the async pre-save hook?</h3>
+<p>Mongoose supports two styles, and they're alternatives, not partners:</p>
+<ul>
+  <li><strong>Callback hook</strong> — you signal "done" with <code>next()</code> and "failed" with <code>next(error)</code>.</li>
+  <li><strong>Async hook</strong> — the returned promise <em>is</em> the signal. Return to continue, throw to abort.</li>
+</ul>
+<p>When the hook is declared <code>async</code>, Mongoose watches the promise and never passes <code>next</code> at all — so the parameter is <code>undefined</code> and calling it is a TypeError. My function was already async, so the promise was always the real channel; the <code>next</code> calls were a second, broken mechanism layered on top.</p>
+<div class="gotcha"><b>Why it looked like it worked</b>
+The broken branch only ran on the <em>second</em> save — the login path, which saves the user to store a refresh token. Signup passed fine for days. Dormant bugs surface when a different code path finally runs.</div>
+</div>
+
+<div class="q">
+<h3><span class="n">Q54</span> What happens if bcrypt throws inside that hook?</h3>
+<p>The async function rejects. Mongoose sees the rejected promise, aborts the save, and <code>save()</code> itself rejects. In the controller the <code>await</code> throws, hits <code>catch</code>, goes to <code>next(error)</code>, and lands in the error handler. <strong>Nothing is written to the database.</strong></p>
+<p>That's exactly right — a failed hash must never become a saved user.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q55</span> Where does <code>timestamps: true</code> go?</h3>
+<p>In the <strong>second</strong> argument to the Schema constructor:</p>
+<pre><code>new mongoose.Schema({ /* fields */ }, { timestamps: true })</code></pre>
+<p>Put it in the fields object and Mongoose reads it as a field named <code>timestamps</code> whose type is <code>true</code> — which isn't a type. Hence <code>Invalid schema configuration: 'true' is not a valid type at path 'timestamps'</code>. It adds <code>createdAt</code> and <code>updatedAt</code> and maintains them for you.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q56</span> <code>required: true</code> vs <code>required: [true, "message"]</code>?</h3>
+<p>The array form is <code>[condition, message]</code>. With bare <code>true</code> you get Mongoose's default — <code>Path `email` is required.</code> — accurate but developer-flavoured and not something you want reaching a user.</p>
+<p>The array form lets you write the user-facing wording once, in the model, so every route that creates a user produces the same message.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q57</span> What is <code>validate</code> and when do you use it?</h3>
+<p>A custom rule beyond the built-ins. <code>validator</code> returns true/false, and <code>message</code> can be a string or a function receiving <code>props</code> so you can include the offending value.</p>
+<pre><code>validate: {
+  validator: v => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(v),
+  message: "Password needs upper, lower, a number and a symbol"
+}</code></pre>
+</div>
+
+<div class="q">
+<h3><span class="n">Q58</span> Any caveat with a validator on a hashed field?</h3>
+<p>Yes. Validators run on the value being saved. Because hashing happens in a pre-save hook — which runs <em>after</em> validation — the strength regex correctly sees the plain password. But if you ever assign an already-hashed value directly, the regex would run against the hash. Worth knowing before it bites.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q59</span> How does an error thrown inside a schema method reach your error handler?</h3>
+<p>Nothing magic happens. The method returns a promise; the controller awaits it; the rejection becomes a thrown exception at the <code>await</code>; <code>catch</code> calls <code>next(error)</code>; Express routes anything passed to <code>next</code> to the four-argument error middleware.</p>
+<p>In Express 5 you don't even need the try/catch — a rejected promise returned from a handler is forwarded automatically.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q60</span> Why doesn't <code>unique: true</code> produce a nice Mongoose validation error?</h3>
+<p>Because <code>unique</code> is <strong>not a validator</strong> — it's an instruction to build a unique index in MongoDB. The rejection comes from the database, as error code <code>11000</code>, <em>after</em> all validators have already passed.</p>
+<p>That's why the error handler needs a separate <code>11000</code> branch that reads <code>error.keyValue</code> and returns a 409.</p>
+</div>
+
+
+<!-- ============ 7 ============ -->
+<h2 id="s7"><span class="num">7.</span> Indexes</h2>
+
+<div class="q">
+<h3><span class="n">Q61</span> What is an index?</h3>
+<p>A separate sorted structure — a B-tree — mapping field values to document locations. Without one, MongoDB does a collection scan and reads every document. With one, it jumps straight to the range it needs.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q62</span> What does an index cost?</h3>
+<p>Disk space, and slower writes — every insert, update and delete must also update every index touching those fields. So you index what you actually query, not everything. An unused index is pure cost.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q63</span> What types should you be able to name?</h3>
+<ul>
+  <li><strong>Single field</strong> — one field</li>
+  <li><strong>Compound</strong> — several fields; order matters</li>
+  <li><strong>Unique</strong> — rejects duplicate values</li>
+  <li><strong>Text</strong> — word search across string fields</li>
+  <li><strong>TTL</strong> — auto-deletes documents after a time; ideal for sessions, OTPs, password-reset tokens</li>
+  <li><strong>Partial / sparse</strong> — indexes only documents matching a filter</li>
+</ul>
+</div>
+
+<div class="q">
+<h3><span class="n">Q64</span> What does <code>{ owner: 1, createdAt: -1 }</code> mean?</h3>
+<p>It's a compound index. <code>owner</code> and <code>createdAt</code> are field names; <code>1</code> and <code>-1</code> are sort <strong>direction</strong> — ascending and descending. It exists to serve one query shape:</p>
+<pre><code>Product.find({ owner: req.user._id }).sort({ createdAt: -1 })
+// "this user's products, newest first"</code></pre>
+<p>(<code>createdAt</code> comes free from <code>timestamps: true</code>.)</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q65</span> Why does <code>owner</code> come first?</h3>
+<p>Field order follows the query: <strong>equality first, then sort or range</strong>. You filter by owner (equality), then sort by date.</p>
+<p>With owner first, all of one owner's entries sit together in the index and are already ordered by date — MongoDB reads one contiguous slice and it's done. Reversed, the entries for a single owner are scattered and it has to jump around.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q66</span> Does the direction actually matter?</h3>
+<p>For this query, no. MongoDB can walk an index backwards, so <code>{ owner: 1, createdAt: 1 }</code> serves it just as well.</p>
+<p>Direction only matters when a <em>single sort mixes directions</em> — <code>.sort({ owner: 1, createdAt: -1 })</code> needs the index directions to match, or be exactly inverted. The part that always matters is field <strong>order</strong>.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q67</span> What is the index prefix rule?</h3>
+<p>A compound index also serves queries that use a <em>left-hand prefix</em> of its fields. Given <code>{ a: 1, b: 1, c: 1 }</code>, it supports queries on <code>a</code>, on <code>a + b</code>, and on <code>a + b + c</code> — but <strong>not</strong> on <code>b</code> alone or <code>c</code> alone.</p>
+<p>Which is why you don't need a separate single-field index on <code>a</code>. Good thing to say unprompted; it shows you've thought about index count, not just index existence.</p>
+</div>
+
+
+<!-- ============ 8 ============ -->
+<h2 id="s8"><span class="num">8.</span> Express &amp; Error Handling</h2>
+
+<div class="q">
+<h3><span class="n">Q68</span> What is middleware?</h3>
+<p>A function with the signature <code>(req, res, next)</code> sitting in the request pipeline. It can read or modify <code>req</code>/<code>res</code>, end the response itself, or call <code>next()</code> to pass control along. Registration order is execution order.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q69</span> Why does the order matter in your <code>app.js</code>?</h3>
+<ul>
+  <li><code>cors</code> first — preflights must be answered before anything else runs</li>
+  <li>body parsers before controllers that read <code>req.body</code></li>
+  <li><code>cookieParser</code> before anything reading <code>req.cookies</code></li>
+  <li>routes</li>
+  <li>404 handler — reached only when no route matched</li>
+  <li>error handler — <strong>last of all</strong></li>
+</ul>
+</div>
+
+<div class="q">
+<h3><span class="n">Q70</span> What makes a function an <em>error</em> middleware?</h3>
+<p>Four parameters: <code>(err, req, res, next)</code>. Express inspects <code>fn.length</code> — three means normal middleware, four means error handler.</p>
+<div class="gotcha"><b>Classic bug</b>
+Delete the unused <code>next</code> parameter to tidy up, and the function silently stops being an error handler. Errors then fall through to Express's default HTML error page.</div>
+</div>
+
+<div class="q">
+<h3><span class="n">Q71</span> Explain <code>Promise.resolve(fn(req,res,next)).catch(next)</code>.</h3>
+<p>That's the <code>asyncHandler</code> wrapper, and it exists because in Express 4 a rejected promise inside a route was simply ignored — the request hung until it timed out.</p>
+<ul>
+  <li><code>fn(req,res,next)</code> — call the handler; since it's async it returns a promise</li>
+  <li><code>Promise.resolve(...)</code> — normalise it, so a handler that returns a non-promise still works</li>
+  <li><code>.catch(next)</code> — any rejection is passed to <code>next</code>, which routes it into the error pipeline</li>
+</ul>
+</div>
+
+<div class="q">
+<h3><span class="n">Q72</span> Express 5 forwards async errors itself. Is asyncHandler dead?</h3>
+<p>For the plain "the handler rejected" case, yes — Express 5 wraps handler invocation and routes rejections to <code>next</code> for you.</p>
+<p>You still write try/catch when you want to <strong>reshape</strong> an error — turning a raw <code>TokenExpiredError</code> into a 401 with <code>code: "TOKEN_EXPIRED"</code>. That's precisely what the auth middleware and refresh controller do.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q73</span> What can Express 5 still <em>not</em> catch?</h3>
+<p>Anything that escapes the request's call stack:</p>
+<ul>
+  <li>a throw inside a <code>setTimeout</code> / <code>setInterval</code> callback</li>
+  <li>a throw inside an event-emitter listener</li>
+  <li>a promise created but never returned or awaited (a floating promise)</li>
+  <li>a throw after the response has already been sent</li>
+</ul>
+<p>By the time those fire, Express has no reference to the request any more. That's what the <code>process.on</code> handlers are for.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q74</span> What do <code>uncaughtException</code> and <code>unhandledRejection</code> do?</h3>
+<p>They're the last safety net. <code>uncaughtException</code> fires for a synchronous throw nobody caught; <code>unhandledRejection</code> for a promise that rejected with no handler.</p>
+<p>You use them to <strong>log and exit</strong> — not to keep running. After an uncaught exception the process state is unknown, so continuing risks corrupting data. Log it, exit non-zero, let a process manager (pm2, Docker, systemd) restart a clean process.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q75</span> If Express auto-catches, why keep try/catch at all?</h3>
+<p>Three reasons: to translate a library error into your API's shape, to add context, and to run cleanup. Auto-forwarding gives you a generic 500. try/catch gives you a 401 with a code the frontend can act on.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q76</span> Why does your error handler branch on <code>error.name</code>?</h3>
+<p>Because different sources throw differently shaped errors, and each maps to a different HTTP status:</p>
+<ul>
+  <li><code>ValidationError</code> — Mongoose, holds an <code>errors</code> object of every failed field → 400</li>
+  <li><code>CastError</code> — a malformed ObjectId, e.g. <code>/products/not-an-id</code> → 400</li>
+  <li><code>code === 11000</code> — duplicate key, from MongoDB itself → 409</li>
+  <li>anything else — <code>statusCode</code> if it's ours, otherwise 500</li>
+</ul>
+</div>
+
+<div class="q">
+<h3><span class="n">Q77</span> Why check <code>typeof error.code === "string"</code> before adding it to the payload?</h3>
+<p>Because Mongo's duplicate-key code is the <em>number</em> <code>11000</code>, while our own codes are strings like <code>TOKEN_EXPIRED</code>. Without the check, the client would receive <code>code: 11000</code> and might try to branch on it. The type check keeps the field meaning exactly one thing.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q78</span> Why hide the message on a 500 in production?</h3>
+<p>Raw errors leak internals — file paths, query text, driver versions, sometimes credentials. Show users a generic message; log the real one server-side. Non-500 messages are ones you wrote deliberately, so those are safe to show.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q79</span> Why is the 404 handler a path-less <code>app.use</code>?</h3>
+<p>If no route matched, execution reaches it — so a path-less <code>app.use</code> after all routes catches everything left. It must sit after the routes but before the error handler.</p>
+<div class="gotcha"><b>Express 5 change</b>
+The bare <code>'*'</code> wildcard now throws. Use a path-less <code>app.use</code>, or <code>'/*splat'</code> if you need a named parameter.</div>
+</div>
+
+
+<!-- ============ 9 ============ -->
+<h2 id="s9"><span class="num">9.</span> Promises &amp; async/await</h2>
+<p class="lead">Asked in almost every JS interview, and the follow-ups go deep.</p>
+
+<div class="q">
+<h3><span class="n">Q80</span> What is a Promise, in one sentence?</h3>
+<p>An object that stands in for a value that isn't ready yet.</p>
+<p>You get it <em>instead of</em> the answer, immediately, so your program can carry on instead of blocking. Later it either holds the answer or the reason there isn't one.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q81</span> What are its states?</h3>
+<p><code>pending</code> → then either <code>fulfilled</code> (with a value) or <code>rejected</code> (with a reason). Once it settles it never changes again — a one-way door. That's why attaching <code>.then</code> to an already-settled promise still fires.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q82</span> Is Promise a built-in? A class?</h3>
+<p>Both. <code>Promise</code> has been a built-in class in the language since ES2015, constructed with <code>new Promise((resolve, reject) =&gt; { ... })</code>. Before that, libraries like Bluebird and jQuery deferreds provided their own.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q83</span> How does a promise get produced?</h3>
+<p>Something starts work that can't finish now — a network call, a file read, a timer — and immediately hands back a pending promise. The actual work is handed to the environment (the OS, the browser, libuv in Node).</p>
+<p>When that work completes, the runtime calls <code>resolve</code> or <code>reject</code>, which settles the promise and queues its callbacks onto the microtask queue.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q84</span> What is async/await really?</h3>
+<p>Syntax over promises. <code>async</code> makes a function always return a promise. <code>await</code> pauses that function until a promise settles, then gives you the value — or throws the rejection reason.</p>
+<p>Nothing new is happening underneath. It just lets asynchronous code read top-to-bottom like synchronous code.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q85</span> So <code>.then</code> and <code>await</code> are the same thing?</h3>
+<p>Two ways to consume the same promise. <code>.then</code> takes a callback; <code>await</code> suspends the enclosing function. <code>await</code> is usually clearer, especially for sequences and for error handling.</p>
+<p><code>.then</code> still earns its place for fire-and-forget chains, for <code>.finally</code> cleanup, and in places where you can't use <code>await</code> — like the shared <code>refreshPromise</code>, where you want to <em>hold</em> the promise rather than wait on it.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q86</span> Then what is try/catch's role?</h3>
+<p>try/catch is the language's general exception handler — nothing to do with promises specifically. It works with <code>await</code> because <code>await</code> converts a rejection into a thrown exception.</p>
+<div class="gotcha"><b>The consequence</b>
+Without <code>await</code>, a rejected promise doesn't throw, and try/catch sees nothing at all. A missing <code>await</code> silently disables your error handling.</div>
+</div>
+
+<div class="q">
+<h3><span class="n">Q87</span> What is a "thenable"?</h3>
+<p>Any object with a callable <code>.then(resolve, reject)</code> method. The promise machinery never checks <code>instanceof Promise</code> — it duck-types for a <code>.then</code>. If it finds one, it calls it and adopts the result.</p>
+<p>That's how non-native promise libraries interoperate with <code>await</code>: <code>await</code> works on any thenable, not just real promises.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q88</span> Is <code>getUser(1).then()</code> a thenable?</h3>
+<p>No — that's <em>calling</em> <code>.then</code> on something. The thenable is <code>getUser(1)</code>, the object that <em>has</em> the method.</p>
+<p>And <code>.then()</code> with no arguments is a no-op pass-through: it returns a new promise with the same outcome as the original.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q89</span> What did we have before async/await?</h3>
+<p>Callbacks. You passed a function to be run "when it's done", so error handling was an <code>if (err)</code> at the top of every one, and sequencing meant nesting — callback hell. Promises (ES2015) flattened the nesting into a chain; async/await (ES2017) made the chain look like ordinary sequential code.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q90</span> Back then, how did you know a function was asynchronous?</h3>
+<p>You didn't, from the signature alone — it was convention plus documentation. The Node convention was error-first callbacks: <code>fn(args, (err, result) =&gt; {})</code>. If a function took a callback last and returned nothing, you assumed async.</p>
+<p>That's a real argument for promises: the function now <em>returns</em> something you can inspect, so asynchrony is visible in the code rather than implied by a naming convention.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q91</span> What is <code>Promise.reject(error)</code>, and why does it need a <code>return</code>?</h3>
+<p><code>Promise.reject(x)</code> creates an already-rejected promise. In an interceptor you return it to say "this request failed — propagate the failure to whoever called."</p>
+<pre><code>if (!shouldRefresh) {
+  return Promise.reject(error);   // the return is load-bearing
+}</code></pre>
+<p>Without <code>return</code>, the promise is created and discarded, execution falls through to the code below, and the interceptor ends up returning <code>undefined</code>. The caller's <code>await</code> then <em>resolves</em> with undefined instead of throwing — a very quiet bug that turns a failed request into a successful one.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q92</span> Where do promise callbacks run?</h3>
+<p>The <strong>microtask queue</strong>, which is drained after the current synchronous code finishes and <em>before</em> the next macrotask (timers, I/O). That's why a <code>.then</code> fires before a <code>setTimeout(fn, 0)</code> registered earlier.</p>
+<pre><code>setTimeout(() => console.log("timeout"), 0);
+Promise.resolve().then(() => console.log("promise"));
+console.log("sync");
+// sync → promise → timeout</code></pre>
+</div>
+
+
+<!-- ============ 10 ============ -->
+<h2 id="s10"><span class="num">10.</span> React &amp; Next.js</h2>
+
+<div class="q">
+<h3><span class="n">Q93</span> What is Context and when should you use it?</h3>
+<p>A way to pass a value to any depth of the tree without threading props through every level. Use it for genuinely app-wide things — the logged-in user, theme, locale.</p>
+<p>Don't use it for values that change rapidly: every consumer re-renders when the value changes, so a fast-changing context is a performance problem disguised as convenience.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q94</span> React 19 changed the provider syntax — what changed?</h3>
+<p>You render the context object directly:</p>
+<pre><code>&lt;UserContext value={{ user, logout }}&gt;{children}&lt;/UserContext&gt;</code></pre>
+<p><code>&lt;UserContext.Provider&gt;</code> still works but is deprecated. Consuming is unchanged: <code>useContext(UserContext)</code>.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q95</span> Why does <code>useUserContext</code> throw when the context is null?</h3>
+<p>Because the default value is <code>null</code>, so reading it outside the provider gives you null. Throwing converts a confusing "cannot read property of null" deep inside some component into a clear message at the point of misuse.</p>
+<p>It also <strong>narrows the type</strong> — after the throw, TypeScript knows the value isn't null, so consumers stop getting "possibly null" errors on every property.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q96</span> When you call a state setter, does the variable update immediately?</h3>
+<p>No. The variable in the current render is a <code>const</code> captured for that render. The setter <em>schedules</em> a re-render; the new value appears in the next render's variable. Reading it on the line after the setter gives you the old value.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q97</span> Why does the updater form <code>setX(prev =&gt; ...)</code> exist?</h3>
+<p>Because the value you closed over may be stale. If two updates queue in the same tick, <code>setCount(count + 1)</code> twice both read the <em>same</em> <code>count</code>, so you increment once.</p>
+<pre><code>setCount(count + 1);        // both read the same captured value
+setCount(count + 1);        // net effect: +1
+
+setCount(prev => prev + 1); // each receives the latest queued value
+setCount(prev => prev + 1); // net effect: +2</code></pre>
+<p>Rule: use the updater form whenever the new state depends on the old one.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q98</span> Why <code>key={item._id}</code> and not <code>key={index}</code>?</h3>
+<p>Keys tell React which element is which between renders. With a filtered or reordered list, index keys shift — React reuses the wrong DOM node, and component state lands on the wrong row.</p>
+<p>A stable ID from the server survives reordering. This showed up concretely as delete-in-progress state attaching to the wrong item after a deletion.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q99</span> When do <code>useMemo</code> / <code>useCallback</code> actually help?</h3>
+<ul>
+  <li><code>useMemo</code> — when a computation is genuinely expensive, or when an object/array identity must stay stable because something depends on it.</li>
+  <li><code>useCallback</code> — when a function is passed to a memoized child, or used as an effect dependency.</li>
+</ul>
+<p>If neither applies they cost more than they save: they run on every render <em>and</em> hold memory. "I wrap everything in useCallback" is a wrong answer.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q100</span> Why fetch <code>/me</code> on mount instead of trusting client state?</h3>
+<p>The tokens live in httpOnly cookies, invisible to JavaScript, and React state is wiped on every reload. <code>/me</code> is the only way to answer "who am I?" after a refresh.</p>
+<p>It also revalidates server-side — the session might have been revoked since the tab was opened.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q101</span> Why does the login page flash before redirecting a logged-in user?</h3>
+<p>Because the redirect lives in <code>useEffect</code>, which runs <em>after</em> the first paint. The component renders, the browser paints it, then the effect fires and navigates. The user sees the login form for a frame or two.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q102</span> How do you fix the flash properly?</h3>
+<p>Don't render the page until you know who the user is. In this app <code>UserProvider</code> renders a skeleton until <code>/me</code> answers, so children never render in the unknown state — the login page can't flash because it hasn't mounted yet.</p>
+<p>The stronger answer: decide on the <strong>server</strong>, so the wrong page is never sent at all.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q103</span> What is <code>proxy.ts</code>, and why didn't you use it for the auth guard?</h3>
+<p>It's Next's edge middleware, <strong>renamed from <code>middleware.ts</code> to <code>proxy.ts</code> in Next 16</strong>. It runs before the request reaches a route, so it can redirect with zero flash.</p>
+<p>I didn't use it here because at the edge it can only see whether a cookie is <em>present</em>, not whether the JWT is valid — verifying would need an edge-compatible JWT check or a network call. Presence-only is a legitimate first pass for UX, with the real authorization still enforced on the API. It should never be your only check.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q104</span> Server vs client components — when do you need <code>"use client"</code>?</h3>
+<p>Client components are required for state, effects, event handlers, browser APIs, and context providers. Everything else is better as a server component: no JavaScript shipped to the browser, and data fetching happens closer to the source.</p>
+<p><code>"use client"</code> marks a boundary — everything imported below it becomes client code too, so put it as low in the tree as you can.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q105</span> Why is <code>UserProvider</code> in the layout rather than in a page?</h3>
+<p>The layout persists across navigation, so the session is fetched once. In a page it would refetch and lose state on every route change.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q106</span> Why <code>router.replace</code> and not <code>router.push</code> in a redirect guard?</h3>
+<p><code>push</code> adds a history entry, so the back button returns to the login page they were just bounced off — and bounces them again. <code>replace</code> swaps the current entry, so back goes where they actually came from.</p>
+</div>
+
+
+<!-- ============ 11 ============ -->
+<h2 id="s11"><span class="num">11.</span> axios &amp; the Interceptor</h2>
+
+<div class="q">
+<h3><span class="n">Q107</span> What is an interceptor?</h3>
+<p>A hook axios runs on every request or response before your code sees it. A response interceptor takes two functions — one for success, one for errors — mirroring <code>.then(onSuccess, onError)</code>.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q108</span> What does <code>(response) =&gt; response</code> do?</h3>
+<p>Nothing — it's the identity pass-through for the success case. You have to supply it because the error handler is the <em>second</em> argument.</p>
+<p>You could return <code>response.data.data</code> here to unwrap the API envelope globally, but then every call site's type changes and you lose access to status and headers. Usually not worth it.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q109</span> What is <code>original</code>?</h3>
+<p><code>error.config</code> — the complete configuration of the request that failed: url, method, headers, data, everything. Passing it back into <code>api(original)</code> re-sends exactly the same request. That's the mechanism that lets a request survive a token refresh transparently.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q110</span> Why <code>api(original)</code> and not <code>axios(original)</code>?</h3>
+<p><code>api</code> is the configured instance — baseURL, <code>withCredentials</code>, and the interceptors. <code>axios(original)</code> would bypass all of that.</p>
+<p>Note the inverse for the refresh call itself: it deliberately uses bare <code>axios</code>, so that a <em>failing refresh</em> doesn't re-enter the interceptor and recurse.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q111</span> Several requests 401 at the same moment. What happens?</h3>
+<p>They all reach the interceptor, all find <code>refreshPromise</code> already set, and all await that same promise. One network refresh happens; then each replays its own original request. Without the shared promise, concurrent refreshes plus rotation would invalidate one another and log the user out.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q112</span> Why redirect with <code>window.location.href</code> instead of the Next router?</h3>
+<p>The interceptor isn't a component, so no hooks are available. A hard navigation also wipes all in-memory state, which is what you want after a session dies.</p>
+<p>The <code>typeof window !== "undefined"</code> guard is because this module can be evaluated during server rendering, where <code>window</code> doesn't exist.</p>
+<div class="gotcha"><b>Typo that cost me an hour</b>
+<code>typeof window !== undefined</code> — without the quotes — is <em>always true</em>, because <code>typeof</code> returns a string and a string is never the undefined value.</div>
+</div>
+
+<div class="q">
+<h3><span class="n">Q113</span> Why check <code>onAuthPage</code> before redirecting?</h3>
+<p>If the failure happened while already on <code>/login</code>, redirecting to <code>/login</code> reloads the page, which runs <code>/me</code> again, which fails again — a reload loop. Skip the redirect when you're already where you'd be sending them.</p>
+</div>
+
+
+<!-- ============ 12 ============ -->
+<h2 id="s12"><span class="num">12.</span> TypeScript</h2>
+
+<div class="q">
+<h3><span class="n">Q114</span> What is <code>React.Dispatch&lt;React.SetStateAction&lt;T&gt;&gt;</code>?</h3>
+<p>The type of a <code>useState</code> setter, built from two pieces:</p>
+<ul>
+  <li><code>SetStateAction&lt;T&gt;</code> = <code>T | ((prev: T) =&gt; T)</code> — a value <em>or</em> an updater function</li>
+  <li><code>Dispatch&lt;A&gt;</code> = <code>(value: A) =&gt; void</code></li>
+</ul>
+<p>Together: "a function accepting either a new value or an updater, returning nothing." Note the order — <code>Dispatch</code> wraps <code>SetStateAction</code>, not the reverse.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q115</span> Why is a caught error typed <code>unknown</code>?</h3>
+<p>Because JavaScript lets you throw anything — a string, a number, <code>null</code>. TypeScript refuses to assume it's an <code>Error</code>. You narrow before using it:</p>
+<pre><code>catch (error) {
+  if (axios.isAxiosError&lt;{ message?: string }&gt;(error)) {
+    toast.error(error.response?.data?.message ?? "Request failed");
+  } else if (error instanceof Error) {
+    toast.error(error.message);
+  }
+}</code></pre>
+<p><code>isAxiosError</code> is a type guard — it narrows the type <em>and</em> tells TS that <code>error.response</code> exists.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q116</span> <code>string</code> vs <code>String</code>?</h3>
+<p><code>string</code> is the primitive type — what you always want. <code>String</code> is the wrapper object type. A <code>string</code> is assignable to a <code>String</code> but not the reverse, which produces confusing errors like <code>Type '"" | String' is not assignable to type 'string'</code>. Same for <code>number</code>/<code>Number</code> and <code>boolean</code>/<code>Boolean</code>.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q117</span> Why "Property 'data' does not exist on type 'never'"?</h3>
+<p>Because the value was narrowed all the way to <code>never</code> — usually a caught error typed <code>unknown</code> that you tried to use without narrowing first, or an exhaustive check that eliminated every remaining possibility. Narrow with a type guard before touching properties.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q118</span> Why does indexing an object with a plain <code>string</code> fail?</h3>
+<p><code>obj[key]</code> where <code>key: string</code> asks TypeScript to allow <em>any</em> string, but the type only declares specific keys. Fix by typing the key as <code>keyof User</code>, or by iterating with <code>Object.entries(obj)</code>, which hands you correctly typed pairs.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q119</span> What does <code>interface Task extends FormValues { _id: string }</code> give you?</h3>
+<p>Everything in <code>FormValues</code>, plus <code>_id</code>. It's the standard answer to "the form shape, plus what the server adds" — you declare the shared fields once and the two types can't drift apart.</p>
+</div>
+
+
+<!-- ============ 13 ============ -->
+<h2 id="s13"><span class="num">13.</span> War Stories</h2>
+<p class="lead">The strongest interview material in this document. A specific bug, a wrong first hypothesis, and how the evidence corrected it — that's what separates you from someone who has only read about these topics.</p>
+
+<div class="q">
+<h3><span class="n">1</span> The infinite refresh loop</h3>
+<p><strong>Symptom:</strong> the login page reloaded forever.</p>
+<p><strong>First hypothesis (wrong):</strong> the <code>NO_TOKEN</code> code was being treated as refreshable.</p>
+<p><strong>What disproved it:</strong> removing that branch changed nothing. So the cause had to be state surviving across reloads — which narrowed it to the cookies.</p>
+<p><strong>Real cause:</strong> the refresh controller returned 401 but never cleared the cookies, so every reload replayed the identical doomed cycle.</p>
+<p><strong>Lesson:</strong> a failure must leave the client in a changed state, or retrying is guaranteed to repeat.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">2</span> <code>select: false</code> didn't hide the password</h3>
+<p>It applies to queries only. <code>User.create()</code> doesn't query — it returns the document you just built. Fixed with a <code>toJSON</code> transform, which covers every path out.</p>
+<p><strong>Lesson:</strong> query-time options don't govern non-query paths. Put the guarantee at the layer everything passes through.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">3</span> The async hook that called <code>next()</code></h3>
+<p>Signup worked for days. Login crashed with <code>TypeError: next is not a function</code> — because login triggers a <em>second</em> save (to store the refresh token), and only that path reached the branch containing <code>next()</code>.</p>
+<p><strong>Lesson:</strong> dormant bugs surface when a different code path finally runs. "It worked yesterday" often means "yesterday I didn't run that line."</p>
+</div>
+
+<div class="q">
+<h3><span class="n">4</span> "Could not reach server" blamed on CORS</h3>
+<p>The preflight was fine. The dev server was restarting mid-request, because <code>node --watch</code> was watching a directory that had temporary files being written into it. In-flight requests were killed by the restart.</p>
+<p><strong>Lesson:</strong> confirm the server is alive and stable before debugging the protocol. Check the process before you check the headers.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">5</span> The cookie that was too short-lived</h3>
+<p>Setting the access cookie's <code>maxAge</code> to the access token's lifetime meant the browser dropped the cookie the instant the token expired. So <code>jwt.verify</code> never ran, <code>TokenExpiredError</code> never fired, and the refresh flow could never trigger.</p>
+<p><strong>Lesson:</strong> a security control tuned too tight can disable the very mechanism that depends on it. Two expiry clocks for one concept is one clock too many.</p>
+</div>
+
+
+<!-- ============ 14 ============ -->
+<h2 id="s14"><span class="num">14.</span> Rapid Fire</h2>
+<p class="lead">One-line answers. If you can't produce these instantly, they're the ones to drill.</p>
+
+<div class="scroll">
+<table class="rapid">
+<tr><td>What is an origin?</td><td>Scheme + host + port. All three must match.</td></tr>
+<tr><td>Who enforces CORS?</td><td>The browser. Not the server.</td></tr>
+<tr><td>What triggers a preflight?</td><td>Anything not "simple" — JSON content type, custom headers, PUT/PATCH/DELETE.</td></tr>
+<tr><td>Can you use <code>*</code> with credentials?</td><td>No. You must name the exact origin.</td></tr>
+<tr><td>Is a JWT encrypted?</td><td>No — signed. The payload is readable by anyone.</td></tr>
+<tr><td>Where's the bcrypt salt stored?</td><td>Inside the hash string, along with the cost factor.</td></tr>
+<tr><td>httpOnly stops what?</td><td>JS reading the cookie. Limits XSS token theft.</td></tr>
+<tr><td>sameSite stops what?</td><td>Cookies being attached to cross-site-initiated requests. CSRF.</td></tr>
+<tr><td>Why two tokens?</td><td>Short-lived one is exposed often; long-lived one is revocable and rarely exposed.</td></tr>
+<tr><td>How do you log out of a stateless JWT?</td><td>You can't kill the access token — keep it short and revoke the refresh token.</td></tr>
+<tr><td>Error middleware signature?</td><td>Four params: <code>(err, req, res, next)</code>.</td></tr>
+<tr><td><code>req.body</code> with no body, Express 5?</td><td><code>undefined</code>, not <code>{}</code>.</td></tr>
+<tr><td>What can Express 5 not auto-catch?</td><td>Throws in timers, event listeners, floating promises, post-response throws.</td></tr>
+<tr><td>Promise states?</td><td>pending → fulfilled or rejected. Settles once, permanently.</td></tr>
+<tr><td>What is a thenable?</td><td>Any object with a callable <code>.then</code>. Duck-typed, not <code>instanceof</code>.</td></tr>
+<tr><td>Microtask vs macrotask?</td><td>Promises drain before timers/IO of the next tick.</td></tr>
+<tr><td>Why does <code>await</code> make try/catch work?</td><td>It converts a rejection into a thrown exception.</td></tr>
+<tr><td>Does <code>setState</code> update the variable now?</td><td>No — next render. Use the updater form when the new value depends on the old.</td></tr>
+<tr><td>Why not <code>key={index}</code>?</td><td>Indexes shift on reorder/filter; state attaches to the wrong row.</td></tr>
+<tr><td>What's <code>middleware.ts</code> called in Next 16?</td><td><code>proxy.ts</code>.</td></tr>
+<tr><td>Provider syntax in React 19?</td><td><code>&lt;Context value={}&gt;</code> — no <code>.Provider</code>.</td></tr>
+<tr><td>When do you need <code>"use client"</code>?</td><td>State, effects, event handlers, browser APIs, context providers.</td></tr>
+<tr><td>Compound index field order rule?</td><td>Equality first, then sort/range.</td></tr>
+<tr><td>Index prefix rule?</td><td>A compound index serves any left-hand prefix of its fields.</td></tr>
+<tr><td>Is <code>unique: true</code> a validator?</td><td>No — it builds a DB index. Failures arrive as error code 11000.</td></tr>
+<tr><td>Instance method vs static?</td><td>Instance needs this document's data; static works on the collection.</td></tr>
+<tr><td>What does an index cost?</td><td>Disk, and a write penalty on every insert/update/delete.</td></tr>
+<tr><td>Why <code>Promise.reject</code> needs <code>return</code>?</td><td>Otherwise it's discarded and the caller's <code>await</code> resolves with undefined.</td></tr>
+</table>
+</div>
+
+</div>
+</body>
+</html>

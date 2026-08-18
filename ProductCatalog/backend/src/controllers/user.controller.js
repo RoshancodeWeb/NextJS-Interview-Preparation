@@ -129,7 +129,7 @@ export const refreshTheSession = async (req, res, next) => {
             throw new ApiError(401, "Unauthorized User");
         }
 
-        if (user.refreshToken == token) {
+        if (user.refreshToken === token) {
             const accessToken = await user.generateAccessToken();
             const refreshToken = await user.generateRefreshToken();
 
@@ -143,8 +143,15 @@ export const refreshTheSession = async (req, res, next) => {
 
         throw new ApiError(401, "Unauthorized User");
     } catch (error) {
+        // The session is unrecoverable, so CLEAR THE COOKIES. If we don't, the
+        // browser keeps resending the dead token on every page load, /me keeps
+        // returning TOKEN_EXPIRED, the interceptor keeps retrying, and the app
+        // sits in an infinite reload loop.
+        res.clearCookie("accessToken", cookieOptions)
+           .clearCookie("refreshToken", cookieOptions);
+
         if (error.name === "TokenExpiredError" || error.name === "JsonWebTokenError") {
-            return next(new ApiError(401, "Session expired, please log in again"));
+            return next(new ApiError(401, "Session expired, please log in again", "REFRESH_INVALID"));
         }
         next(error);
     }
