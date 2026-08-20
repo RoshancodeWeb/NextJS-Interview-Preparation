@@ -129,19 +129,19 @@ export const refreshTheSession = async (req, res, next) => {
             throw new ApiError(401, "Unauthorized User");
         }
 
-        if (user.refreshToken === token) {
-            const accessToken = await user.generateAccessToken();
-            const refreshToken = await user.generateRefreshToken();
-
-            user.refreshToken = refreshToken;
-            await user.save({ validateBeforeSave: false });
-            return res.status(200)
-                .cookie("accessToken", accessToken, { ...cookieOptions, maxAge: ACCESS_COOKIE_MAX_AGE })
-                .cookie("refreshToken", refreshToken, { ...cookieOptions, maxAge: REFRESH_COOKIE_MAX_AGE })
-                .json({ success: true, message: "Session Refreshed Successfully" });
+        if (user.refreshToken !== token) {
+            throw new ApiError(401, "Unauthorized User");
         }
 
-        throw new ApiError(401, "Unauthorized User");
+        // NO rotation. The refresh token stays as-is until it expires, so the
+        // stored copy and the browser's cookie can never drift apart — which is
+        // what broke multi-tab before. Only a fresh access token is issued, and
+        // nothing is written to the database.
+        const accessToken = user.generateAccessToken();
+
+        return res.status(200)
+            .cookie("accessToken", accessToken, { ...cookieOptions, maxAge: ACCESS_COOKIE_MAX_AGE })
+            .json({ success: true, message: "Session Refreshed Successfully" });
     } catch (error) {
         // The session is unrecoverable, so CLEAR THE COOKIES. If we don't, the
         // browser keeps resending the dead token on every page load, /me keeps
