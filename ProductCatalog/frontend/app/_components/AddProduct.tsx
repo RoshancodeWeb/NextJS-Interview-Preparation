@@ -1,6 +1,8 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
+import api from "../lib/api"
+import axios from "axios"
 
 const labelClass =
     "text-sm font-medium text-slate-700"
@@ -40,32 +42,69 @@ const AddProduct = () => {
         const url = URL.createObjectURL(product.productImage);
         setPreview(url);
 
+        return () => {
+            URL.revokeObjectURL(url);
+        };
+
 
     }, [product.productImage]);
 
 
     const clearImage = () => {
         setProduct((prev) => ({ ...prev, productImage: null }));
-    
-        if (fileRef.current) fileRef.current.value = "";   
+
+        if (fileRef.current) fileRef.current.value = "";
 
     }
 
-    const handleSubmit=(e:React.SubmitEvent<HTMLFormElement>)=>{
+    const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
-        let errors=[];
-        for(const [name,value] of Object.entries(product)){
-            if(!value){
+        let errors = [];
+        for (const [name, value] of Object.entries(product)) {
+            if (!value) {
                 errors.push(`${name} is empty`);
             }
         }
-        if(errors.length>0){
+        if (errors.length > 0) {
             toast.error(errors.join(", "));
+            return;
         }
+
+        const formData = new FormData();
+        formData.append("productName", product.productName);
+        formData.append("productStock", product.productStock);
+        if (product.productImage) {
+            formData.append("productImage", product.productImage);
+        }
+        try {
+            const response = await api.post(`/product/createProduct`, formData, {
+                headers: { "Content-Type": "multipart/form-data" }
+
+            });
+            toast.success(response?.data?.message);
+            setProduct({
+                productName: '',
+                productStock: '',
+                productImage: null
+            })
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                if (error?.response) {
+                    const data = error.response?.data;
+                    return toast.error(data.message);
+
+                }
+
+                return toast.error("Could Not Reach Server,Is it running?");
+            }
+
+            return toast.error(error instanceof Error ? error.message : "Something Went Wrong");
+        }
+
     }
 
     return (
-        <div  className='w-full max-w-md'>
+        <div className='w-full max-w-md'>
 
             {/* Card */}
             <form onSubmit={handleSubmit} className='flex flex-col gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8'>
@@ -127,7 +166,10 @@ const AddProduct = () => {
                             type='file'
                             id='productImage'
                             name='productImage'
-                            onChange={(e) => { setProduct((prev) => ({ ...prev, productImage: e.target.files?.[0] ?? null })) }}
+                            onChange={(e) => {
+
+                                setProduct((prev) => ({ ...prev, productImage: e.target.files?.[0] ?? null }))
+                            }}
                             ref={fileRef}
                             className={fileInputClass}
                         />

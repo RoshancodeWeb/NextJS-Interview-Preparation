@@ -5,10 +5,11 @@ import axios from 'axios'
 import api from './lib/api'
 import { useUserContext } from './context/UserContext'
 import AddProduct from './_components/AddProduct'
+import Products from './_components/Products'
 
 const Home = () => {
   const { loggedInUserDetails } = useUserContext();
- 
+
 
   return (
     <main className='mx-auto w-full max-w-2xl px-4 py-10'>
@@ -24,9 +25,9 @@ const Home = () => {
 
       {/* Refresh-flow tester */}
       <section className='mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm'>
-        <AddProduct/>
+        <AddProduct />
+        <Products />
 
-       
       </section>
     </main>
   )
