@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import UserProvider from "./context/UserContext";
 import Navbar from "./_components/Navbar";
+import { ProductProvider } from "./context/ProductContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,8 +29,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <UserProvider>
-          <Navbar />
-          {children}
+          <ProductProvider>
+            <Navbar />
+            {children}
+          </ProductProvider>
+
         </UserProvider>
 
         <Toaster position="top-right" richColors toastOptions={{ duration: 2000, closeButton: true }} />

@@ -5,6 +5,7 @@ const productSchema=new mongoose.Schema({
     productName:{
         type:String,
         required:[true,"Product is Required"],
+        unique:true,
         minLength:[4,"Name should be greater than 3 charactres"],
         trim:true
     },
@@ -27,7 +28,7 @@ const productSchema=new mongoose.Schema({
        ref:"User",
        required:[true,"Owner Id is required"]
     }
-});
+},{timestamps:true});
 
 productSchema.set("toJSON",{
     transform:(doc,ret)=>{
@@ -36,6 +37,8 @@ productSchema.set("toJSON",{
          return ret;
     }
 })
+
+productSchema.index({owner:1,createdAt:-1});
 
 const Product=mongoose.model("Product",productSchema);
 

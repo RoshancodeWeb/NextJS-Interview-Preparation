@@ -1,8 +1,5 @@
 "use client"
-import { useState } from 'react'
-import { toast } from 'sonner'
-import axios from 'axios'
-import api from './lib/api'
+
 import { useUserContext } from './context/UserContext'
 import AddProduct from './_components/AddProduct'
 import Products from './_components/Products'

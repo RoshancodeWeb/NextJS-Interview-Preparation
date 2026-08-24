@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import api from "../lib/api"
 import axios from "axios"
+import { useProductContext } from "../context/ProductContext"
 
 const labelClass =
     "text-sm font-medium text-slate-700"
@@ -29,7 +30,11 @@ const AddProduct = () => {
 
     const [preview, setPreview] = useState<string | null>(null);
 
+    const [submitting, setSubmitting] = useState(false);
+
     const fileRef = useRef<HTMLInputElement>(null);
+
+    const { refreshProducts } = useProductContext();
 
 
     useEffect(() => {
@@ -76,17 +81,27 @@ const AddProduct = () => {
         if (product.productImage) {
             formData.append("productImage", product.productImage);
         }
+        setSubmitting(true);
+
         try {
             const response = await api.post(`/product/createProduct`, formData, {
                 headers: { "Content-Type": "multipart/form-data" }
 
             });
             toast.success(response?.data?.message);
+
             setProduct({
                 productName: '',
                 productStock: '',
                 productImage: null
-            })
+            });
+            // React never owned the file input's value, so resetting state alone
+            // would leave the old filename showing next to "Choose file".
+            if (fileRef.current) fileRef.current.value = "";
+
+            // Pull the new list so the grid below shows what was just created.
+            await refreshProducts();
+
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 if (error?.response) {
@@ -99,6 +114,10 @@ const AddProduct = () => {
             }
 
             return toast.error(error instanceof Error ? error.message : "Something Went Wrong");
+        } finally {
+            // `finally` still runs after the `return`s above, so there is exactly
+            // one place that re-enables the button — success or failure.
+            setSubmitting(false);
         }
 
     }
@@ -213,9 +232,16 @@ const AddProduct = () => {
                 {/* Submit */}
                 <button
                     type='submit'
-                    className='w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 active:scale-[.99] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+                    disabled={submitting}
+                    className='flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 active:scale-[.99] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-indigo-600 disabled:active:scale-100'
                 >
-                    Add Product
+                    {submitting && (
+                        <svg className='size-4 animate-spin' viewBox='0 0 24 24' fill='none' aria-hidden='true'>
+                            <circle cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' className='opacity-25' />
+                            <path d='M12 2a10 10 0 0 1 10 10' stroke='currentColor' strokeWidth='4' strokeLinecap='round' />
+                        </svg>
+                    )}
+                    {submitting ? 'Adding…' : 'Add Product'}
                 </button>
             </form>
 
