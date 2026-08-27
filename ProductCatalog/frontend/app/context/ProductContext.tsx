@@ -12,10 +12,16 @@ export type ProductType = {
     productImage: string
 }
 
+type ProductsWithPagination = { products: ProductType[], pagination: { totalPages: number, total: number, limit: number, page: number } }
+
 type ProductContext = {
-    products: ProductType[],
-    setProducts: Dispatch<SetStateAction<ProductType[]>>,
+    productsWithPagination: ProductsWithPagination,
+    setProductsWithPagination: Dispatch<SetStateAction<ProductsWithPagination>>,
     loading: boolean,
+    selectedPage: number,
+    setSelectedPage: Dispatch<SetStateAction<number>>,
+    deletingId: string | null,
+    deleteProduct: (id: string) => Promise<void>,
     refreshProducts: () => Promise<void>
 }
 
@@ -24,8 +30,10 @@ const ProductContext = createContext<ProductContext | null>(null);
 
 
 export const ProductProvider = ({ children }: { children: React.ReactNode }) => {
-    const [products, setProducts] = useState<ProductType[]>([]);
+    const [productsWithPagination, setProductsWithPagination] = useState<ProductsWithPagination>({ products: [], pagination: { totalPages: 0, total: 0, limit: 0, page: 0 } });
     const [loading, setLoading] = useState(true);
+    const [selectedPage, setSelectedPage] = useState<number>(1);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
 
     /**
@@ -35,8 +43,12 @@ export const ProductProvider = ({ children }: { children: React.ReactNode }) => 
      */
     const loadProducts = useCallback(async (signal?: AbortSignal) => {
         try {
-            const response = await api.get(`/product/getAllProduct`, { signal });
-            setProducts(response?.data?.data ?? []);
+            const response = await api.get(`/product/getAllProduct`, {
+                params: { page: selectedPage, limit: 10 },
+                signal
+            });
+            setProductsWithPagination({ products: response.data.data, pagination: response.data.pagination });
+
             setLoading(false);
 
         } catch (error) {
@@ -58,7 +70,7 @@ export const ProductProvider = ({ children }: { children: React.ReactNode }) => 
 
             toast.error(error instanceof Error ? error.message : "Something Went Wrong");
         }
-    }, []);
+    }, [selectedPage]);
 
 
     useEffect(() => {
@@ -76,8 +88,43 @@ export const ProductProvider = ({ children }: { children: React.ReactNode }) => 
     const refreshProducts = useCallback(() => loadProducts(), [loadProducts]);
 
 
+    const deleteProduct = useCallback(async (id: string) => {
+        setDeletingId(id);
+
+        try {
+            const response = await api.delete(`/product/deleteProduct/${id}`);
+            toast.success(response?.data?.message);
+
+            // Refetch rather than splice locally. The deletion changes the total
+            // and which item gets pulled up from the next page to fill the gap,
+            // and only the server knows both.
+            await loadProducts();
+
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                toast.error(error.response
+                    ? error.response?.data?.message
+                    : "Could Not Reach Server, Is it running");
+                return;
+            }
+            toast.error(error instanceof Error ? error.message : "Something Went Wrong");
+        } finally {
+            setDeletingId(null);
+        }
+    }, [loadProducts]);
+
+
     return (
-        <ProductContext value={{ products, setProducts, loading, refreshProducts }}>
+        <ProductContext value={{
+            productsWithPagination,
+            setProductsWithPagination,
+            loading,
+            selectedPage,
+            setSelectedPage,
+            deletingId,
+            deleteProduct,
+            refreshProducts
+        }}>
             {children}
         </ProductContext>
     )

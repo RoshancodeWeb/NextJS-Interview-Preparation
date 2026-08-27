@@ -169,8 +169,14 @@
     <li><a href="#s10">React &amp; Next.js</a> <span class="cnt">Q93–106</span></li>
     <li><a href="#s11">axios &amp; the Interceptor</a> <span class="cnt">Q107–113</span></li>
     <li><a href="#s12">TypeScript</a> <span class="cnt">Q114–119</span></li>
-    <li><a href="#s13">War Stories</a> <span class="cnt">real bugs</span></li>
-    <li><a href="#s14">Rapid Fire</a> <span class="cnt">one-liners</span></li>
+    <li><a href="#s13">File Uploads &amp; the Browser</a> <span class="cnt">Q120–131</span></li>
+    <li><a href="#s14">Forms, Numbers &amp; Validation</a> <span class="cnt">Q132–139</span></li>
+    <li><a href="#s15">Effects, StrictMode &amp; Cancellation</a> <span class="cnt">Q140–152</span></li>
+    <li><a href="#s16">Operators &amp; Truthiness</a> <span class="cnt">Q153–160</span></li>
+    <li><a href="#s17">Pagination &amp; Search</a> <span class="cnt">Q161–176</span></li>
+    <li><a href="#s18">Authorization &amp; Safe Deletes</a> <span class="cnt">Q177–184</span></li>
+    <li><a href="#s19">War Stories</a> <span class="cnt">real bugs</span></li>
+    <li><a href="#s20">Rapid Fire</a> <span class="cnt">one-liners</span></li>
   </ol>
 </nav>
 
@@ -1067,7 +1073,493 @@ setCount(prev => prev + 1); // net effect: +2</code></pre>
 
 
 <!-- ============ 13 ============ -->
-<h2 id="s13"><span class="num">13.</span> War Stories</h2>
+<h2 id="s13"><span class="num">13.</span> File Uploads &amp; the Browser</h2>
+<p class="lead">The one input type React cannot control, and the one place the browser deliberately refuses to cooperate.</p>
+
+<div class="q">
+<h3><span class="n">Q120</span> What type do you use for a file input in state?</h3>
+<p><code>File | null</code>. A file input doesn't give you a string — the browser hands you a <code>File</code> object holding the binary plus <code>name</code>, <code>size</code> and <code>type</code>. It's a built-in browser type, so TypeScript already knows it. <code>null</code> is the "nothing chosen yet" state, and also your initial value.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q121</span> Why can't you set <code>value</code> on a file input?</h3>
+<p>Because its value is a <em>file path on the user's machine</em>. If JavaScript could set it, any site could write <code>C:\Users\me\.ssh\id_rsa</code> into a hidden input, auto-submit the form, and steal the file without a single click.</p>
+<p>So the browser makes it read-only. React can't override that, which means a file input is <strong>always uncontrolled</strong> — the DOM holds the truth and your state is a copy.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q122</span> Then how do you clear one?</h3>
+<p>Setting it to the empty string is the single exception the browser allows, because emptying it can't leak anything:</p>
+<pre><code>if (fileRef.current) fileRef.current.value = "";</code></pre>
+<p>The alternative is remounting it with a changing <code>key</code>. Either way, clearing your React state alone leaves the old filename sitting next to the Choose File button — that's the visible cost of an uncontrolled input.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q123</span> What is <code>e.target.files</code>?</h3>
+<p>A <code>FileList | null</code>, not a single file — inputs can be <code>multiple</code>. For a single-file input you take the first:</p>
+<pre><code>e.target.files?.[0] ?? null</code></pre>
+<p><code>?.</code> because the list can be null, <code>?? null</code> because indexing an empty list gives <code>undefined</code> rather than <code>null</code>.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q124</span> How do you preview an image before uploading it?</h3>
+<pre><code>useEffect(() =&gt; {
+  if (!file) { setPreview(null); return; }
+
+  const url = URL.createObjectURL(file);
+  setPreview(url);
+
+  return () =&gt; URL.revokeObjectURL(url);
+}, [file]);</code></pre>
+<p>Then <code>&lt;img src={preview} /&gt;</code>.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q125</span> What does <code>URL.createObjectURL</code> actually do?</h3>
+<p>It doesn't read or copy the file. It returns a short string like <code>blob:http://localhost:3000/a1b2…</code> that points at the file already in memory, and the browser resolves it locally. Nothing is uploaded — which is why it's instant even for a large photo.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q126</span> Why must you call <code>revokeObjectURL</code>?</h3>
+<p>Every URL you create pins that file in memory until you release it or the tab closes. Preview ten images without revoking and you're holding all ten. The cleanup function releases each one exactly when it stops being used.</p>
+<div class="fu"><b>Say the words</b>
+This is a genuine memory leak, and being able to name it — plus point at the cleanup that fixes it — is a strong signal in a React interview.</div>
+</div>
+
+<div class="q">
+<h3><span class="n">Q127</span> <code>createObjectURL</code> or <code>FileReader</code>?</h3>
+<p><code>FileReader.readAsDataURL</code> gives you a base64 <code>data:</code> string. It works, but it's asynchronous and base64 is about 33% larger than the file, so you hold a bloated copy in state.</p>
+<p>Use <code>createObjectURL</code> for previews. Reach for base64 only when you genuinely need the encoded bytes — sending JSON instead of <code>FormData</code>, for instance.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q128</span> Why <code>FormData</code> instead of JSON for an upload?</h3>
+<p>JSON is text. Binary would have to be base64-encoded into it, inflating the payload and forcing the server to decode it. <code>FormData</code> sends <code>multipart/form-data</code>, which carries raw bytes alongside text fields in one request, and lets the server stream them to disk rather than buffering everything in memory.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q129</span> What does multer do?</h3>
+<p>Express's body parsers only handle JSON and urlencoded bodies — neither touches <code>multipart/form-data</code>, so <code>req.body</code> and <code>req.file</code> would both be empty. Multer parses the multipart stream, writes files to disk (or memory), puts them on <code>req.file</code>/<code>req.files</code>, and leaves the text fields on <code>req.body</code>.</p>
+<p><code>limits: { fileSize }</code> is the equivalent of the 16kb JSON cap — without it, upload size is unbounded.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q130</span> Why delete the uploaded file when the database write fails?</h3>
+<p>Because multer already wrote it to disk before your controller ran. If <code>Product.create</code> then throws — a validation error, a duplicate — the row never exists but the file does. Do that a few hundred times and your disk is full of images nothing references.</p>
+<pre><code>catch (error) {
+  if (req.file?.path) fs.unlink(req.file.path, () =&gt; {});
+  next(error);
+}</code></pre>
+<p>The general shape: when an operation spans two systems, a failure in the second must undo the first.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q131</span> Where should uploaded files live in production?</h3>
+<p>Not on the app server's disk. Containers are replaced on every deploy, and anything written to their filesystem goes with them; horizontal scaling makes it worse, because the server that stores the file isn't necessarily the one asked for it later.</p>
+<p>Object storage — S3, Cloudinary — with only the URL in your database. Local disk is fine for learning, and knowing precisely why it doesn't survive deployment is the part worth saying.</p>
+</div>
+
+
+<!-- ============ 14 ============ -->
+<h2 id="s14"><span class="num">14.</span> Forms, Numbers &amp; Validation</h2>
+
+<div class="q">
+<h3><span class="n">Q132</span> Why keep a number field as a <em>string</em> in form state?</h3>
+<p>Because form state holds what the user <em>typed</em>, not what you'll eventually store — and those are different things.</p>
+<p>Convert with <code>Number()</code> on every keystroke and clearing the box gives <code>""</code>, which becomes <code>0</code>. Now you can't tell "hasn't typed anything" from "typed zero", and the field snaps back to 0 when they try to backspace. Keep it a string while editing and convert once at submit.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q133</span> What type is <code>e.target.value</code>?</h3>
+<p>Always <code>string</code> — even on <code>type="number"</code>. The DOM stores input values as text; <code>type</code> only changes the keyboard and the spinner UI, not the storage.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q134</span> <code>min</code> vs <code>minLength</code>?</h3>
+<p><code>min</code> is a numeric bound and works on number/date inputs. <code>minLength</code> counts <em>characters</em> and only applies to text-type inputs. Putting <code>minLength={0}</code> on a number field does nothing at all — silently.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q135</span> Does <code>min={0}</code> stop someone entering a negative number?</h3>
+<p>No. It stops the spinner arrows going below zero and marks the field invalid on submit, but the user can still type <code>-5</code> and it lands in your state. If you want the keystroke refused, guard in the change handler.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q136</span> Client-side or server-side validation?</h3>
+<p>Both, for different reasons.</p>
+<ul>
+  <li><strong>Client</strong> — user experience. Instant feedback so nobody submits a broken form.</li>
+  <li><strong>Server</strong> — correctness. It's the only one an attacker can't remove.</li>
+</ul>
+<p><code>min={0}</code> is markup; anyone can delete the attribute in DevTools or skip the browser entirely with curl. You do both, and you never trust the first.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q137</span> How do you stop a double submit?</h3>
+<p>A <code>submitting</code> flag that disables the button while the request is in flight. But be clear about what that buys you: it's UX, not a guarantee. The button is inert, the API isn't — a script or a retry can still POST twice.</p>
+<p>Real protection is server-side: a unique index on the fields that define a duplicate, or an idempotency key the client generates and the server deduplicates on.</p>
+<div class="fu"><b>The follow-up</b>
+"How do you prevent double submission?" usually expects the button answer. The follow-up is exactly the paragraph above.</div>
+</div>
+
+<div class="q">
+<h3><span class="n">Q138</span> Where should the submitting flag be set?</h3>
+<p><em>After</em> validation, not at the top of the handler. A form that fails validation never made a request, so there's nothing to wait for — flipping it earlier flashes a disabled button for no reason.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q139</span> Why clear it in <code>finally</code> rather than in each branch?</h3>
+<p><code>finally</code> runs even when the block returns, so there is exactly one place that re-enables the button. Clearing it manually in every branch means the day someone adds one more error path and forgets, the button stays dead forever with no error to point at.</p>
+<p>The rule: <strong><code>finally</code> is for state that must be undone regardless of outcome</strong> — loading flags, spinners, closing connections, releasing locks.</p>
+</div>
+
+
+<!-- ============ 15 ============ -->
+<h2 id="s15"><span class="num">15.</span> Effects, StrictMode &amp; Cancellation</h2>
+<p class="lead">Where "it fires twice" stops being a mystery and starts being a design principle.</p>
+
+<div class="q">
+<h3><span class="n">Q140</span> Why does a component mount twice in development?</h3>
+<p>React StrictMode, on by default in Next. React runs the lifecycle twice on purpose: mount → effects → cleanups → effects again. Nothing visible disappears. In a production build it runs once.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q141</span> Why does React do that?</h3>
+<p>It's a rehearsal. React wants to prove your component survives being mounted, torn down and mounted again. If it only works the first time, you have a bug you can't see yet — a subscription with no cleanup, a fetch that resolves after the component is gone, a counter that double-increments.</p>
+<p>It's building toward features where components really are unmounted and remounted while keeping state — restoring a page on back navigation, hiding and re-showing a tab. StrictMode makes you find the problems now instead of when a user hits back.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q142</span> When do real unmounts happen?</h3>
+<ul>
+  <li>Navigating to another page</li>
+  <li>A condition flipping — <code>{isOpen &amp;&amp; &lt;Modal /&gt;}</code></li>
+  <li>A list item being removed</li>
+  <li>A parent passing a different <code>key</code></li>
+</ul>
+<p>In each case an unfinished request, a live subscription or a running timer keeps going unless you cancel it. <strong>Whatever an effect starts, its cleanup must stop.</strong> Fetch → abort. <code>addEventListener</code> → <code>removeEventListener</code>. <code>setInterval</code> → <code>clearInterval</code>.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q143</span> What is <code>AbortController</code>?</h3>
+<p>A built-in browser object that works like a remote control with a cancel button. Two halves:</p>
+<ul>
+  <li><code>controller.signal</code> — the receiver. You hand it <em>to</em> the request so the request listens.</li>
+  <li><code>controller.abort()</code> — the button. It stops everything holding that signal.</li>
+</ul>
+</div>
+
+<div class="q">
+<h3><span class="n">Q144</span> You added an AbortController and nothing changed. Why?</h3>
+<p>Almost always because the signal was never passed to the request:</p>
+<pre><code>const controller = new AbortController();
+await api.get(url);                              // ← no signal, abort does nothing
+await api.get(url, { signal: controller.signal });  // ← now it's paired</code></pre>
+<p>The button only works on things you actually gave the signal to. Building the remote and never pairing it with the device is the classic version of this bug.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q145</span> Why must <code>axios.isCancel</code> be checked before <code>isAxiosError</code>?</h3>
+<p>Because a cancelled request <em>is</em> an AxiosError. Check <code>isAxiosError</code> first and a cancellation falls into that branch, finds no <code>error.response</code>, and shows "Could not reach server" — so you'd trade a duplicate request for a phantom error toast every time a user navigates away mid-fetch.</p>
+<pre><code>if (axios.isCancel(error)) return;      // must come first
+if (axios.isAxiosError(error)) { ... }</code></pre>
+</div>
+
+<div class="q">
+<h3><span class="n">Q146</span> Why leave <code>loading</code> true when a request is cancelled?</h3>
+<p>Because a cancellation isn't an ending — StrictMode's abort is immediately followed by a real request. Clearing the flag there would flash the empty state ("No products yet") for a frame before the list arrives.</p>
+<p>The distinction: <em>failed</em> means stop and show something. <em>Cancelled</em> means something else is already taking over.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q147</span> What is a stale closure in <code>useCallback</code>?</h3>
+<pre><code>const load = useCallback(async () =&gt; {
+  await api.get(url, { params: { page } });
+}, []);                                  // ← page missing</code></pre>
+<p>With <code>[]</code>, the function is frozen from the first render, so <code>page</code> is permanently whatever it was then. You can click page 5 and it still requests page 1 — no error, no warning, just the wrong data.</p>
+<p>Anything a callback reads from render scope belongs in its dependency array.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q148</span> Walk me through how changing a page number triggers a refetch.</h3>
+<ol>
+  <li><code>setSelectedPage(2)</code> — state changes, the provider re-renders</li>
+  <li><code>useCallback</code> sees <code>[selectedPage]</code> changed → returns a <strong>new function</strong> closing over page 2</li>
+  <li><code>useEffect(..., [loadProducts])</code> compares by <strong>reference</strong>, sees a different object → runs the cleanup (aborting the old request), then re-runs</li>
+  <li>The new fetch goes out as <code>?page=2</code></li>
+  <li>State updates, consumers re-render</li>
+</ol>
+<p>Nothing calls the fetch explicitly. State changing makes the function change, and the function changing makes the effect re-run.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q149</span> Is <code>useCallback</code> a performance optimisation here?</h3>
+<p>No — it's correctness. Without it, <code>loadProducts</code> would be a new function on <em>every</em> render, so the effect would re-run, fetch, set state, re-render, create another new function, and fetch again. An infinite loop.</p>
+<p><code>useCallback</code> pins the identity and lets it change only when the page does. That's a good nuance to raise, because "useCallback is for performance" is the answer most people give.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q150</span> What is debouncing, and why does search need it?</h3>
+<p>Waiting for activity to stop before acting. Every keystroke restarts a timer; only a pause fires the request.</p>
+<pre><code>useEffect(() =&gt; {
+  const timer = setTimeout(() =&gt; applySearch(query), 400);
+  return () =&gt; clearTimeout(timer);
+}, [query]);</code></pre>
+<p>Typing "laptop" without it fires six requests, five already stale before they land. The cleanup cancelling the previous timer <em>is</em> the debounce — there's no library needed.</p>
+<div class="fu"><b>Throttle vs debounce</b>
+Debounce waits for silence — good for search input. Throttle runs at most once per interval regardless — good for scroll and resize, where you want steady updates rather than only a final one.</div>
+</div>
+
+<div class="q">
+<h3><span class="n">Q151</span> Why does out-of-order response matter?</h3>
+<p>Click page 2, then quickly page 3. If page 2's response is slower and lands second, it overwrites page 3 — you're looking at the wrong data with the right page highlighted.</p>
+<p>Cancelling on cleanup removes the class of bug entirely: a superseded request can't arrive because it no longer exists. You won't see this on localhost. You will on mobile data.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q152</span> After a create or delete — refetch, or update state locally?</h3>
+<p><strong>Refetch</strong> is the correct default. A deletion changes the total, possibly which page you belong on, and which item is promoted from the next page to fill the gap. Only the server knows all three.</p>
+<p><strong>Local update</strong> (optimistic) is instant and saves a round trip, but it trusts your client to compute what the server would have — and it drifts the moment the server derives anything you didn't replicate.</p>
+<p>Refetch by default; go optimistic when the round trip is actually noticeable and you can reconcile on failure.</p>
+</div>
+
+
+<!-- ============ 16 ============ -->
+<h2 id="s16"><span class="num">16.</span> Operators &amp; Truthiness</h2>
+
+<div class="q">
+<h3><span class="n">Q153</span> Which values are falsy?</h3>
+<pre><code>false   0   -0   0n   ""   null   undefined   NaN</code></pre>
+<p>Everything else is truthy — including <code>"0"</code>, <code>"false"</code>, <code>[]</code> and <code>{}</code>. Empty array and empty object being truthy catches people constantly.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q154</span> What do <code>&amp;&amp;</code> and <code>||</code> actually return?</h3>
+<p><strong>Not booleans</strong> — one of the operands.</p>
+<ul>
+  <li><code>a || b</code> → <code>a</code> if a is truthy, otherwise <code>b</code></li>
+  <li><code>a &amp;&amp; b</code> → <code>b</code> if a is truthy, otherwise <code>a</code></li>
+</ul>
+<pre><code>"hi" || "bye"   // "hi"
+0    || 10      // 10
+null &amp;&amp; "bye"   // null</code></pre>
+</div>
+
+<div class="q">
+<h3><span class="n">Q155</span> What is <code>??</code> and how does it differ from <code>||</code>?</h3>
+<p>Nullish coalescing. It only falls through for <code>null</code> and <code>undefined</code> — <code>0</code> and <code>""</code> are kept.</p>
+<pre><code>0 || 10    // 10   ← 0 treated as missing
+0 ?? 10    // 0    ← 0 is a real value</code></pre>
+<p>Rule of thumb: if <code>0</code> or <code>""</code> are valid values you want to keep, use <code>??</code>. If they're garbage you want replaced, <code>||</code> is right.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q156</span> Give a case where <code>||</code> is right and <code>??</code> would be a bug.</h3>
+<pre><code>const limit = Number(req.query.limit) || 10;</code></pre>
+<p><code>Number("abc")</code> is <code>NaN</code>. <code>NaN</code> is falsy, so <code>||</code> catches it — but <code>NaN</code> is <em>not</em> null or undefined, so <code>??</code> would pass it straight through to <code>.limit(NaN)</code>.</p>
+<p>Newer isn't automatically better. <code>??</code> is narrower on purpose, and narrower is sometimes wrong.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q157</span> What is short-circuit evaluation?</h3>
+<p>The right side never runs if the left already decides the answer.</p>
+<pre><code>user &amp;&amp; user.name       // user.name never evaluated when user is null
+cached || expensive()   // expensive() only runs if cached is falsy</code></pre>
+<p>That's why <code>&amp;&amp;</code> works as a guard, and the same idea underlies optional chaining.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q158</span> Why does <code>{items.length &amp;&amp; &lt;List /&gt;}</code> render a stray 0?</h3>
+<p>Because <code>&amp;&amp;</code> returns the <em>left</em> operand when it's falsy. With an empty array that's the number <code>0</code> — and React renders <code>0</code> quite happily. You get a zero floating on the page.</p>
+<pre><code>{items.length &gt; 0 &amp;&amp; &lt;List /&gt;}    // left side is now a real boolean</code></pre>
+<p>React skips <code>false</code>, <code>null</code> and <code>undefined</code>, but <code>0</code> is a legitimate thing to render.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q159</span> Can you mix <code>??</code> with <code>||</code>?</h3>
+<p>Not without parentheses — <code>a ?? b || c</code> is a SyntaxError. The two precedences would give different answers, so the language refuses to guess. Write <code>(a ?? b) || c</code>.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q160</span> How do you build an array of N items to map over?</h3>
+<pre><code>Array.from({ length: n }, (_, i) =&gt; i + 1)</code></pre>
+<p><code>Array.from</code> takes anything with a <code>length</code> — it doesn't have to be a real array — and its second argument is a map function.</p>
+<div class="gotcha"><b>The trap</b>
+<code>Array(5).map(fn)</code> returns <code>[empty × 5]</code> and never calls <code>fn</code>. <code>Array(5)</code> creates five <em>holes</em>, not five undefined values, and <code>.map</code> skips holes. <code>[...Array(5)]</code> works because spreading materialises them.</div>
+</div>
+
+
+<!-- ============ 17 ============ -->
+<h2 id="s17"><span class="num">17.</span> Pagination &amp; Search</h2>
+
+<div class="q">
+<h3><span class="n">Q161</span> How do you send a page number to the backend?</h3>
+<p>Query string — <code>?page=2&amp;limit=12</code>. In axios, use <code>params</code> rather than string concatenation so values get URL-encoded and a search term containing a space or <code>&amp;</code> can't break the URL. Read it server-side from <code>req.query</code>.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q162</span> Why query params and not <code>/products/page/2</code>?</h3>
+<p>A path segment identifies a <em>resource</em>. Page 2 isn't a different resource — it's the same collection viewed differently. Query params are for filtering, sorting and slicing, and they compose: <code>?page=2&amp;limit=12&amp;search=phone&amp;sort=name</code>. You can't express that cleanly in a path.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q163</span> How do skip and limit work?</h3>
+<pre><code>const skip = (page - 1) * limit;</code></pre>
+<table class="rapid">
+<tr><td>page 1</td><td>skip 0 → items 1–12</td></tr>
+<tr><td>page 2</td><td>skip 12 → items 13–24</td></tr>
+<tr><td>page 3</td><td>skip 24 → items 25–36</td></tr>
+</table>
+<p>The <code>- 1</code> is because humans count pages from 1 but skipping starts at 0. MongoDB applies the chain as <strong>find → sort → skip → limit</strong> regardless of the order you write it.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q164</span> Why is <code>req.query.page</code> a string?</h3>
+<p>Because a URL is text — there are no types in a query string. <code>req.query.page</code> is <code>"2"</code>, and <code>.skip("2")</code> throws. Always convert, and remember <code>Number("abc")</code> is <code>NaN</code> rather than an error.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q165</span> Why cap the limit?</h3>
+<p>Because that number comes from the client and controls how much work your server does. Without a cap, <code>?limit=999999</code> loads the whole collection into memory and runs <code>JSON.stringify</code> over it — and since Node is single-threaded and stringify is synchronous, <strong>every other request is frozen</strong> while it runs. A denial of service that costs the attacker one URL.</p>
+<div class="fu"><b>The general rule</b>
+Pay extra attention to inputs that <em>size</em> an operation — page limits, batch sizes, upload sizes, timeouts. Those are the ones where a single wrong number is an outage rather than a bad response.</div>
+</div>
+
+<div class="q">
+<h3><span class="n">Q166</span> Why does <code>Math.min</code> enforce a <em>maximum</em>?</h3>
+<p>Because it returns whichever is smaller. <code>Math.min(50, x)</code> means "x, unless x is bigger than 50" — a ceiling. And <code>Math.max(1, x)</code> is a floor. They read backwards from what they enforce, which is why this line confuses people:</p>
+<pre><code>Math.min(50, Math.max(1, Number(req.query.limit) || 12))</code></pre>
+</div>
+
+<div class="q">
+<h3><span class="n">Q167</span> What does <code>.limit(0)</code> do in MongoDB?</h3>
+<p><strong>No limit</strong> — it returns everything. So <code>?limit=0</code> would hand back the entire collection, exactly what the cap existed to prevent. That's why the floor of 1 isn't just tidiness.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q168</span> How do you compute total pages?</h3>
+<pre><code>Math.ceil(total / limit)</code></pre>
+<p>Ceil, because leftovers still need a page. 25 items at 12 per page is 2.08 — that's 12, 12 and 1. <code>Math.round</code> gives 2 and the last item becomes unreachable.</p>
+<p>Edge case: zero items gives zero pages, and "Page 1 of 0" looks broken. Either floor it at 1 or hide the pager when the list is empty.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q169</span> Why <code>countDocuments</code> and not <code>find().length</code>?</h3>
+<p><code>find</code> would fetch every document just to count them — exactly the memory blowup pagination exists to avoid. <code>countDocuments</code> counts in the database and returns a number.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q170</span> Why run the two queries with <code>Promise.all</code>?</h3>
+<p>They don't depend on each other, so there's no reason to wait for one before starting the other. <code>Promise.all</code> fires both and resolves to an array in the same order, so <code>[products, total]</code> destructures cleanly. Sequential awaits take the sum; this takes the slower of the two.</p>
+<p>If either rejects, the whole thing rejects and lands in your catch.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q171</span> What breaks when a user deletes their way down to fewer pages?</h3>
+<p>They're stranded. Sitting on page 3 when only 2 remain, <code>skip</code> jumps past everything and returns an empty list — an empty grid with no obvious way back.</p>
+<p>Fix by clamping server-side and reporting the page you actually served, so the client can correct its own state:</p>
+<pre><code>const totalPages = Math.max(1, Math.ceil(total / limit));
+const safePage   = Math.min(page, totalPages);</code></pre>
+</div>
+
+<div class="q">
+<h3><span class="n">Q172</span> Why does clamping cost you the <code>Promise.all</code>?</h3>
+<p>Because <code>skip</code> now depends on <code>totalPages</code>, which depends on the count — so the count has to finish first and the two queries become sequential. One extra round trip in exchange for never stranding a user. A real trade-off, and worth being able to argue either way.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q173</span> Why does <code>skip</code> get slow at scale?</h3>
+<p>Because MongoDB literally walks and discards those documents. <code>skip(100000)</code> reads a hundred thousand index entries to throw them away. Cost grows with page depth, so page 1 is instant and page 900 is not.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q174</span> What is cursor (keyset) pagination?</h3>
+<p>Instead of "skip 100", you say "give me items after this one":</p>
+<pre><code>Product.find({ createdAt: { $lt: lastSeenCreatedAt } }).limit(12)</code></pre>
+<p>Constant time at any depth, because the index seeks straight there. The trade-off is you lose "jump to page 47" — you only get next and previous. That's exactly why infinite-scroll feeds use it and numbered admin tables don't.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q175</span> Why does client-side search break once you paginate?</h3>
+<p>Because the client only holds the current page. Filtering in memory searches 12 items, so a match on page 3 reports "nothing found" — worse than no search, because it actively lies.</p>
+<p>Search has to move to the server with the pagination, and typing must reset to page 1 — otherwise a term with one page of results, viewed from page 4, shows nothing.</p>
+<div class="fu"><b>The line to say</b>
+Client-side filtering is fine until the dataset stops fitting in one response. Pagination is exactly that moment.</div>
+</div>
+
+<div class="q">
+<h3><span class="n">Q176</span> What is ReDoS, and why escape a search term?</h3>
+<p>User input dropped into <code>$regex</code> becomes regex <em>syntax</em>, not text. <code>.*</code> matches everything. Worse, a crafted pattern like <code>(a+)+$</code> causes catastrophic backtracking — the engine explores exponentially many paths and pins the CPU on a short string. On single-threaded Node that freezes the whole server.</p>
+<pre><code>const escapeRegex = (v) =&gt; v.replace(/[.*+?^${}()|[\]\\]/g, "\\$&amp;");</code></pre>
+<p>Escaping turns every metacharacter into a literal, so a search is only ever a search.</p>
+</div>
+
+
+<!-- ============ 18 ============ -->
+<h2 id="s18"><span class="num">18.</span> Authorization &amp; Safe Deletes</h2>
+
+<div class="q">
+<h3><span class="n">Q177</span> What is IDOR?</h3>
+<p>Insecure Direct Object Reference — exposing a record by id without checking the caller is allowed to touch it. Change the id in the URL, get someone else's data. It's consistently near the top of the OWASP list because it's so easy to write by accident.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q178</span> How should a delete check ownership?</h3>
+<p><strong>Inside the query, not after it.</strong></p>
+<pre><code>// good — a product that isn't yours simply doesn't match
+await Product.findOneAndDelete({ _id: id, owner: req.user._id });
+
+// bad — reads someone else's document before deciding
+const p = await Product.findById(id);
+if (p.owner.toString() !== req.user._id.toString()) throw ...</code></pre>
+<p>The second version loads another user's record into memory before the check, and leaks information through timing and error messages even when the comparison is correct. The first can't, because the database never matched it.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q179</span> Should an unauthorised delete return 403 or 404?</h3>
+<p>404 leaks less. 403 confirms the resource exists and just isn't yours — which is itself information an attacker can enumerate. 404 says nothing. Falls out naturally when the ownership check is in the query, since "not yours" and "not there" become the same result.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q180</span> Why must a missing image file not fail the delete?</h3>
+<p>Because the database row is already gone. From the user's point of view the delete succeeded, so returning an error would be a lie — and they'd retry something that can't be retried. Log the file failure and return success.</p>
+<p>The principle: once the authoritative change has committed, secondary cleanup failures get logged, not surfaced.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q181</span> Why does one <code>refreshToken</code> field mean one session?</h3>
+<p>Because logging in overwrites it. The previous device's token is now orphaned — it still verifies (the signature is valid, it hasn't expired) but it no longer matches what's stored, so its next refresh fails and that session dies.</p>
+<p>Fine if you intend single-session. A surprise if you don't.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q182</span> What breaks with two tabs and rotation?</h3>
+<p>Rotation replaces the token on every refresh. Each tab is a separate JS module instance, so each has its own in-flight guard — a single-flight promise dedupes within one tab, not across tabs.</p>
+<p>Two tabs refresh at once, both read the same stored token, both rotate. The database keeps whichever wrote last, the browser keeps whichever responded last, and if those differ the session is dead on the <em>next</em> refresh — which is why it looks random and unrelated to what you were doing.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q183</span> How do you support multiple sessions safely?</h3>
+<p>Store an array — one token per device — and swap only the one that was used:</p>
+<pre><code>if (!user.refreshTokens.includes(token)) throw new ApiError(401, "Unauthorized");
+user.refreshTokens = user.refreshTokens.filter(t =&gt; t !== token);
+user.refreshTokens.push(newToken);</code></pre>
+<p>This also fixes the race: after two concurrent rotations both new tokens are in the array, so whichever one the browser kept still matches.</p>
+<p>The simpler alternative is to <strong>stop rotating</strong> — issue only a new access token and leave the refresh token alone until it expires. The whole class of bug disappears, at the cost of losing revocation-on-theft detection. Both are defensible; knowing the trade-off is the answer.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">Q184</span> How can renaming a field silently leak data?</h3>
+<p>Your <code>toJSON</code> transform deletes fields by name:</p>
+<pre><code>delete ret.refreshToken;     // renamed the field to refreshTokens → this now does nothing</code></pre>
+<p>Nothing errors. <code>delete</code> on a missing property is legal and returns <code>true</code>. So the rule silently stopped applying and every token started appearing in the login response — inside JSON any script can read, which is precisely what httpOnly cookies existed to prevent.</p>
+<div class="win"><b>The lesson</b>
+Security rules written against string names break silently when the names change. Anything enforced by a literal deserves a test that would fail if it stopped enforcing.</div>
+</div>
+
+
+<!-- ============ 19 ============ -->
+<h2 id="s19"><span class="num">19.</span> War Stories</h2>
 <p class="lead">The strongest interview material in this document. A specific bug, a wrong first hypothesis, and how the evidence corrected it — that's what separates you from someone who has only read about these topics.</p>
 
 <div class="q">
@@ -1104,8 +1596,40 @@ setCount(prev => prev + 1); // net effect: +2</code></pre>
 </div>
 
 
-<!-- ============ 14 ============ -->
-<h2 id="s14"><span class="num">14.</span> Rapid Fire</h2>
+<div class="q">
+<h3><span class="n">6</span> The session that died after exactly one minute</h3>
+<p><strong>Symptom:</strong> log in, work for a minute, get thrown back to the login page. The backend logged <code>TOKEN_EXPIRED</code>, which looked like the culprit.</p>
+<p><strong>It wasn't.</strong> That log was the refresh mechanism firing correctly. Driving the API directly proved the refresh endpoint returned 200 and rotated properly, and that CORS was clean — so the failure had to be somewhere the happy path didn't reach.</p>
+<p><strong>Real cause:</strong> the stored refresh token and the browser's cookie had drifted apart. One <code>refreshToken</code> field per user plus rotation means any duplicate refresh — a second tab, a second login — replaces the token the other holder is still carrying. Its next refresh fails, cookies are cleared, and you're logged out for no visible reason.</p>
+<p><strong>Lesson:</strong> an error in the log is not automatically the bug. Reproduce the happy path in isolation first — knowing which parts <em>work</em> narrows the search faster than staring at the part that failed.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">7</span> The AbortController that aborted nothing</h3>
+<p>Added a controller to stop StrictMode's duplicate request. Nothing changed — still two requests, still two toasts.</p>
+<p>The signal was never passed to <code>api.get</code>. The controller existed, <code>abort()</code> was called on cleanup, and no request was listening.</p>
+<p><strong>Lesson:</strong> a cancellation mechanism is two halves. Building one half produces code that looks correct, runs without error, and does nothing at all — the worst kind of wrong, because it reads as done.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">8</span> The inverted guard that granted access</h3>
+<pre><code>if (!user.refreshTokens.includes(token)) {   // the ! is backwards
+    ...issue new session...
+}</code></pre>
+<p>Refactoring <code>=== token</code> into <code>.includes(token)</code> kept the surrounding <code>if (match) { ... } throw</code> shape and added a <code>!</code>. Result: valid tokens were rejected and <em>unknown</em> ones — including ones revoked at logout — were handed a brand-new session.</p>
+<p><strong>Lesson:</strong> when a condition flips meaning, restructure rather than negate. A guard clause (<code>if (!valid) throw</code>, then the happy path unindented) is much harder to invert by accident than a wrapped success branch.</p>
+</div>
+
+<div class="q">
+<h3><span class="n">9</span> The rename that turned off a security rule</h3>
+<p><code>refreshToken</code> became <code>refreshTokens</code>. The <code>toJSON</code> transform still said <code>delete ret.refreshToken</code>, so it quietly stopped matching — and the login response started returning every refresh token for that user, in JSON, readable by any script.</p>
+<p>Nothing threw. <code>delete</code> on a property that doesn't exist is perfectly legal and returns <code>true</code>.</p>
+<p><strong>Lesson:</strong> rules written against string literals fail open. The whole point of the httpOnly cookie design was keeping those tokens away from JavaScript, and a one-word rename undid it without a single warning.</p>
+</div>
+
+
+<!-- ============ 20 ============ -->
+<h2 id="s20"><span class="num">20.</span> Rapid Fire</h2>
 <p class="lead">One-line answers. If you can't produce these instantly, they're the ones to drill.</p>
 
 <div class="scroll">
@@ -1138,6 +1662,39 @@ setCount(prev => prev + 1); // net effect: +2</code></pre>
 <tr><td>Instance method vs static?</td><td>Instance needs this document's data; static works on the collection.</td></tr>
 <tr><td>What does an index cost?</td><td>Disk, and a write penalty on every insert/update/delete.</td></tr>
 <tr><td>Why <code>Promise.reject</code> needs <code>return</code>?</td><td>Otherwise it's discarded and the caller's <code>await</code> resolves with undefined.</td></tr>
+<tr><td>Type of a file input in state?</td><td><code>File | null</code>. <code>e.target.files</code> is a <code>FileList</code>, take <code>[0]</code>.</td></tr>
+<tr><td>Why can't JS set a file input's value?</td><td>It's a path on the user's disk — settable means stealable. Only <code>""</code> is allowed.</td></tr>
+<tr><td>Preview an image before upload?</td><td><code>URL.createObjectURL(file)</code>, and <code>revokeObjectURL</code> in cleanup.</td></tr>
+<tr><td>Why <code>FormData</code> not JSON for uploads?</td><td>JSON is text; binary would need base64, ~33% bigger and no streaming.</td></tr>
+<tr><td>Why does multer exist?</td><td>Express body parsers don't touch <code>multipart/form-data</code>.</td></tr>
+<tr><td><code>e.target.value</code> on a number input?</td><td>Still a string. The DOM stores all input values as text.</td></tr>
+<tr><td><code>min</code> vs <code>minLength</code>?</td><td><code>min</code> = numeric bound. <code>minLength</code> = character count, text inputs only.</td></tr>
+<tr><td>Does <code>min={0}</code> block typing -5?</td><td>No. It blocks the spinner and fails validation. Guard in the handler.</td></tr>
+<tr><td>Why does a component mount twice?</td><td>StrictMode, dev only. It's testing that your cleanup works.</td></tr>
+<tr><td>What is AbortController?</td><td>A cancel button (<code>abort()</code>) plus a receiver (<code>signal</code>) you must pass to the request.</td></tr>
+<tr><td>Check <code>isCancel</code> or <code>isAxiosError</code> first?</td><td><code>isCancel</code> — a cancellation is also an AxiosError.</td></tr>
+<tr><td>Stale closure in <code>useCallback</code>?</td><td>Empty deps freeze captured values. Anything read from render scope goes in deps.</td></tr>
+<tr><td>Is <code>useCallback</code> always perf?</td><td>No — with an effect depending on it, omitting it is an infinite loop.</td></tr>
+<tr><td>Debounce vs throttle?</td><td>Debounce waits for silence (search). Throttle fires at a steady rate (scroll).</td></tr>
+<tr><td>Falsy values?</td><td><code>false 0 -0 0n "" null undefined NaN</code>. Everything else truthy.</td></tr>
+<tr><td>What does <code>a || b</code> return?</td><td>An operand, not a boolean. <code>a</code> if truthy, else <code>b</code>.</td></tr>
+<tr><td><code>??</code> vs <code>||</code>?</td><td><code>??</code> only falls through on null/undefined. Keeps <code>0</code> and <code>""</code>.</td></tr>
+<tr><td>When is <code>??</code> the wrong choice?</td><td><code>Number(x) ?? 10</code> — <code>NaN</code> isn't nullish, so it passes through.</td></tr>
+<tr><td>Why does <code>{n &amp;&amp; &lt;List/&gt;}</code> print 0?</td><td><code>&amp;&amp;</code> returns the falsy left operand, and React renders <code>0</code>.</td></tr>
+<tr><td><code>Array(5).map(fn)</code>?</td><td>Never runs — holes are skipped. Use <code>Array.from({length:5}, fn)</code>.</td></tr>
+<tr><td>Page number: path or query?</td><td>Query. It's the same resource viewed differently, and params compose.</td></tr>
+<tr><td>Why cap <code>limit</code>?</td><td>Client-controlled work. <code>?limit=999999</code> blocks the event loop for everyone.</td></tr>
+<tr><td><code>.limit(0)</code> in MongoDB?</td><td>No limit — returns everything. Floor at 1.</td></tr>
+<tr><td>Total pages?</td><td><code>Math.ceil(total / limit)</code>. Remainders still need a page.</td></tr>
+<tr><td>Why <code>countDocuments</code>?</td><td><code>find().length</code> would load everything to count it.</td></tr>
+<tr><td>Why is <code>skip</code> slow at depth?</td><td>Mongo walks and discards those docs. Use keyset pagination at scale.</td></tr>
+<tr><td>Keyset pagination trade-off?</td><td>Constant time at any depth, but no "jump to page 47".</td></tr>
+<tr><td>Why escape a regex search term?</td><td>ReDoS — <code>(a+)+$</code> can pin the CPU, and Node is single-threaded.</td></tr>
+<tr><td>What is IDOR?</td><td>Exposing a record by id without checking the caller owns it.</td></tr>
+<tr><td>Where does the ownership check go?</td><td>Inside the query: <code>findOneAndDelete({_id, owner})</code>. Never after a fetch.</td></tr>
+<tr><td>403 or 404 for someone else's record?</td><td>404 — 403 confirms it exists.</td></tr>
+<tr><td>Why does one refreshToken field = one session?</td><td>Logging in overwrites it, orphaning the other device's token.</td></tr>
+<tr><td>Refetch or update state locally after delete?</td><td>Refetch by default — only the server knows the new totals and page contents.</td></tr>
 </table>
 </div>
 
