@@ -1,3 +1,4 @@
+import { Message } from "../models/message.model.js";
 
 const onlineUsers=new Map();
 
@@ -5,31 +6,47 @@ export const registerSocketHandlers = (io) => {
     io.on("connection", (socket) => {
 
 
-        socket.on("user:join",(name)=>{
-            if(typeof name!=="string" || !name.trim()) return;
-            onlineUsers.set(socket.id,{id:socket.id,name:name.trim()});
+        const {_id,name}=socket.handshake.auth;
+        if(!_id) return socket.disconnect();
+        onlineUsers.set(_id,{id:_id,name:name.trim()});
+        socket.join(_id);
+        io.emit("total:userslist",[...onlineUsers.values()]);
+        
 
-            io.emit("total:userslist",[...onlineUsers.values()]);
-        });
 
-
-        socket.on("message:user",({to,text})=>{
-           if(!onlineUsers.has(to)) return; 
+        socket.on("message:user",async({to,text})=>{
+           
+           try{
+            if(!onlineUsers.has(to)) return; 
            if(typeof text !== "string" || !text.trim()) return;
+        
+           const conversationId=[_id,to].sort().join("_");
 
-           io.to(to).emit("message:new",{
-               _id:`${socket.id}-${Date.now()}`,
-               from:socket.id,
-               to,
-               text:text.trim().slice(0,500),
-               createdAt:new Date().toISOString()
-           });
+           const saved=await Message.create({
+             conversationId,
+             from:_id,
+             to,
+             text:text.trim().slice(0,500)
+           })
+           
+
+
+           io.to(to).emit("message:new",saved);
+
+           }catch(err){
+                console.error("message:user failed:", err);
+                socket.emit("message:error", { message: "Message failed to send" });
+
+           }
+
+        
         });
+    
 
 
 
         socket.on("disconnect", () => {
-            onlineUsers.delete(socket.id);
+            onlineUsers.delete(_id);
             io.emit("total:userslist",[...onlineUsers.values()]);
             console.log("User Connection Got Deleted", socket.id);
         });

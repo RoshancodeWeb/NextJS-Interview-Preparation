@@ -1,17 +1,27 @@
 "use client"
 import { useState } from "react"
 
+import { api, getApiErrorMessage } from "../lib/api"
+import { useCurrentUser } from "../context/UserContext"
+
 /**
- * Asks who you are before letting you into the room. Purely local state — there
- * is no auth here, the name is just a label attached to each message.
+ * Asks who you are before letting you into the room. On submit it hits
+ * POST /user/login, which upserts the user and hands back their record — so a
+ * returning name logs back into the same account instead of making a new one.
+ * The returned { _id, name } goes straight into context.
  */
-const NameGate = ({ onSubmit }: { onSubmit: (name: string) => void }) => {
+const NameGate = () => {
+
+    const { setUser } = useCurrentUser();
 
     const [name, setName] = useState("");
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        if (loading) return; // guard against a double-click firing two logins
 
         /**
          * Read the value from the DOM, not from state.
@@ -26,13 +36,29 @@ const NameGate = ({ onSubmit }: { onSubmit: (name: string) => void }) => {
 
         const trimmed = typed.trim();
 
+        // Cheap local check first — no point in a round-trip for an empty box.
         if (!trimmed) {
             setError("Please enter a display name");
             return;
         }
 
         setError("");
-        onSubmit(trimmed);
+        setLoading(true);
+
+        try {
+            const res = await api.post("/user/login", { name: trimmed });
+            // Stored lowercase; capitalise the first letter just for display.
+            const stored: string = res.data.user.name;
+            setUser({
+                _id: res.data.user._id,
+                name: stored.charAt(0).toUpperCase() + stored.slice(1),
+            });
+        } catch (err) {
+            // Real backend messages surface here: "name too short", "taken", etc.
+            setError(getApiErrorMessage(err));
+        } finally {
+            setLoading(false);
+        }
     }
 
     return (
@@ -71,8 +97,9 @@ const NameGate = ({ onSubmit }: { onSubmit: (name: string) => void }) => {
                             maxLength={24}
                             autoComplete='off'
                             autoFocus
+                            disabled={loading}
                             aria-invalid={error ? true : undefined}
-                            className='w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 aria-invalid:border-rose-400 aria-invalid:focus:border-rose-500 aria-invalid:focus:ring-rose-500/20'
+                            className='w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 aria-invalid:border-rose-400 aria-invalid:focus:border-rose-500 aria-invalid:focus:ring-rose-500/20 disabled:opacity-60'
                         />
 
                         {error && (
@@ -81,16 +108,23 @@ const NameGate = ({ onSubmit }: { onSubmit: (name: string) => void }) => {
                     </div>
 
                     {/*
-                      Deliberately never disabled. A disabled button that depends
-                      on React state is dead until hydration finishes — the user
-                      types, nothing happens, and there is no way to find out why.
-                      Let them click, and tell them what is wrong.
+                      Disabled ONLY while a login is in flight — that's post-click,
+                      so hydration is done and the dead-button trap doesn't apply.
+                      It is never disabled based on field state, so an early typer
+                      can always submit.
                     */}
                     <button
                         type='submit'
-                        className='w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 active:scale-[.99]'
+                        disabled={loading}
+                        className='flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 active:scale-[.99] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:bg-indigo-600 disabled:active:scale-100'
                     >
-                        Enter room
+                        {loading && (
+                            <svg className='size-4 animate-spin' viewBox='0 0 24 24' fill='none' aria-hidden='true'>
+                                <circle cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' className='opacity-25' />
+                                <path d='M12 2a10 10 0 0 1 10 10' stroke='currentColor' strokeWidth='4' strokeLinecap='round' />
+                            </svg>
+                        )}
+                        {loading ? "Joining…" : "Enter room"}
                     </button>
                 </form>
             </div>

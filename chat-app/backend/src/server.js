@@ -2,6 +2,7 @@ import "dotenv/config";
 import app from "./app.js";
 import { Server } from "socket.io"
 import { registerSocketHandlers } from "./socket/index.js";
+import { connectDB } from "./config/db.js";
 
 const PORT = process.env.PORT ?? 5000;
 
@@ -12,19 +13,35 @@ const PORT = process.env.PORT ?? 5000;
  *
  *     const io = new Server(server, { cors: { ... } });
  */
-const server = app.listen(PORT, () => {
-    console.log(`HTTP  →  http://localhost:${PORT}`);
-});
 
 
-const io=new Server(server,{
-    cors:{
-        origin:process.env.CORS_ORIGIN ?? "http://localhost:3000",
-        credentials:true,
-    }
-});
+connectDB()
+    .then(() => {
+        const server = app.listen(PORT, () => {
+            console.log(`HTTP  →  http://localhost:${PORT}`);
+        });
 
-registerSocketHandlers(io);
+        const io = new Server(server, {
+            cors: {
+                origin: process.env.CORS_ORIGIN ?? "http://localhost:3000",
+                credentials: true,
+            }
+        });
+
+        registerSocketHandlers(io);
+
+
+    })
+    .catch((error)=>{
+        console.log('Failed To Connect To Db :',error.message);
+        process.exit(1);
+    });
+    
+
+
+
+
+
 
 
 

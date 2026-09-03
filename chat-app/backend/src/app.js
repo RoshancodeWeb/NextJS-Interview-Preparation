@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import userRouter from './routes/user.route.js'
-
+import messageRouter from "./routes/message.route.js"
 import { errorHandler } from "./middlewares/errorHandler.middleware.js";
 
 const app = express();
@@ -18,6 +18,9 @@ app.use(cookieParser());
 
 
 app.use("/api/v1/user",userRouter);
+app.use("/api/v1/message",messageRouter);
+
+
 
 app.get("/api/v1/health", (req, res) => {
     res.status(200).json({ success: true, message: "ok", at: new Date().toISOString() });

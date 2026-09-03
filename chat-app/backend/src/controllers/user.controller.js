@@ -3,7 +3,7 @@ import asyncHandler from "../utils/asynchandler.util.js"
 import User from "../models/user.model.js"
 
 export const createUser = asyncHandler(async (req, res) => {
-    
+
         const { name } = req.body;
         if (!name.trim()) {
             throw new ApiError(400,"Name is Reqquired");
@@ -17,5 +17,5 @@ export const createUser = asyncHandler(async (req, res) => {
         );
 
         res.status(200).json({success:true,message:"User Created Successfully",user});
-        
+
 });

@@ -5,11 +5,17 @@ import type { ChatUser, Conversations, Message } from "../types"
 import UserList from "./UserList"
 import ChatPanel from "./ChatPanel"
 import { socket } from "../lib/socket"
+import { useCurrentUser } from "../context/UserContext"
 
 
 
 
-const ChatLayout = ({ currentUserName, onLeave }: { currentUserName: string, onLeave: () => void }) => {
+const ChatLayout = () => {
+
+    // Only rendered once a user exists (page.tsx gates on it), so user is never
+    // null here. setUser(null) is how "Leave" works.
+    const { user, setUser } = useCurrentUser();
+    const currentUserName = user?.name ?? "";
 
     // Everyone online except you. Starts as [] — never undefined, or every
     // .filter/.find below would need a guard.
@@ -30,11 +36,12 @@ const ChatLayout = ({ currentUserName, onLeave }: { currentUserName: string, onL
 
         const onConnect = () => {
             setCurrentUserId(socket.id ?? "");
-            socket.emit("user:join", currentUserName);
         }
 
         const onNewList = (userlist: ChatUser[]) => {
-            const userListToSet = userlist.filter(u => u.id !== socket.id);
+            
+            const userListToSet = userlist.filter(u => u.id !== user?._id);
+            console.log(userListToSet);
             setavailableUsers(userListToSet);
         }
 
@@ -52,6 +59,7 @@ const ChatLayout = ({ currentUserName, onLeave }: { currentUserName: string, onL
 
         }
 
+        socket.auth={_id:user?._id,name:currentUserName};
         socket.on("connect", onConnect);
         socket.on("total:userslist", onNewList);
         socket.on("message:new", onNewMessage);
@@ -123,7 +131,7 @@ const ChatLayout = ({ currentUserName, onLeave }: { currentUserName: string, onL
                         onSelect={handleSelect}
                         unreadByUser={unreadByUser}
                         currentUserName={currentUserName}
-                        onLeave={onLeave}
+                        onLeave={() => setUser(null)}
                     />
                 </div>
 
