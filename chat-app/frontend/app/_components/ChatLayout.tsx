@@ -6,6 +6,8 @@ import UserList from "./UserList"
 import ChatPanel from "./ChatPanel"
 import { socket } from "../lib/socket"
 import { useCurrentUser } from "../context/UserContext"
+import { api, getApiErrorMessage } from "../lib/api"
+import { toast } from "sonner"
 
 
 
@@ -21,9 +23,11 @@ const ChatLayout = () => {
     // .filter/.find below would need a guard.
     const [availableUsers, setavailableUsers] = useState<ChatUser[]>([]);
 
-    // The server's id for this connection. Empty until `connect` fires, because
-    // socket.id does not exist before the handshake completes.
-    const [currentUserId, setCurrentUserId] = useState("");
+    // Your own identity for message-side rendering. This is the DATABASE _id —
+    // the exact value the server stamps on every stored message's `from`. It must
+    // NOT be socket.id: history messages carry db ids, so comparing against
+    // socket.id would render your own past messages as the other person's.
+    const currentUserId = user?._id ?? "";
 
 
     const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -32,14 +36,41 @@ const ChatLayout = () => {
     const [conversations, setConversations] = useState<Conversations>({});
     const [unreadByUser, setUnreadByUser] = useState<Record<string, number>>({});
 
-    useEffect(() => {
 
-        const onConnect = () => {
-            setCurrentUserId(socket.id ?? "");
+    useEffect(() => {
+        if (!selectedUserId) return;
+
+        // If you switch chats before this fetch resolves, cleanup flips `ignore`
+        // and we drop the late response instead of dumping it into the chat you
+        // just opened. Same stale-async guard as an AbortController, simpler.
+        let ignore = false;
+
+        const loadMessages = async () => {
+            try {
+                const response = await api.get(`/message/${user?._id}/${selectedUserId}`);
+                if (ignore) return;
+
+                setConversations((prev) => ({
+                    ...prev,
+                    [selectedUserId]: response.data.messages
+                }));
+            } catch (error) {
+                if (ignore) return;
+                // getApiErrorMessage handles all three shapes (server error /
+                // no response / other) so the catch stays one line.
+                toast.error(getApiErrorMessage(error));
+            }
         }
 
+        loadMessages();
+
+        return () => { ignore = true; };
+    }, [selectedUserId])
+
+    useEffect(() => {
+
         const onNewList = (userlist: ChatUser[]) => {
-            
+
             const userListToSet = userlist.filter(u => u.id !== user?._id);
             console.log(userListToSet);
             setavailableUsers(userListToSet);
@@ -53,14 +84,13 @@ const ChatLayout = () => {
 
             }));
 
-            if(message.from !==selectedUserId){
-                setUnreadByUser(prev=>({...prev,[message.from]:(prev[message.from] ?? 0) + 1}));
+            if (message.from !== selectedUserId) {
+                setUnreadByUser(prev => ({ ...prev, [message.from]: (prev[message.from] ?? 0) + 1 }));
             }
 
         }
 
-        socket.auth={_id:user?._id,name:currentUserName};
-        socket.on("connect", onConnect);
+        socket.auth = { _id: user?._id, name: currentUserName };
         socket.on("total:userslist", onNewList);
         socket.on("message:new", onNewMessage);
 
@@ -70,7 +100,6 @@ const ChatLayout = () => {
 
         return () => {
 
-            socket.off("connect", onConnect);
             socket.off("total:userslist", onNewList);
             socket.off("message:new", onNewMessage);
 

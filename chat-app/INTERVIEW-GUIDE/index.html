@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WebSockets &amp; Socket.IO — Interview Q&amp;A</title>
+<style>
+  :root{
+    --ink:#0f172a; --ink-soft:#475569; --ink-faint:#64748b;
+    --bg:#ffffff; --card:#ffffff; --line:#e2e8f0; --line-soft:#f1f5f9;
+    --accent:#4f46e5; --accent-soft:#eef2ff;
+    --code-bg:#f8fafc; --code-ink:#1e293b;
+    --warn-bg:#fffbeb; --warn-line:#fcd34d; --warn-ink:#78350f;
+    --ok-bg:#f0fdf4; --ok-line:#86efac; --ok-ink:#14532d;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#e2e8f0; --ink-soft:#94a3b8; --ink-faint:#64748b;
+      --bg:#0f172a; --card:#1e293b; --line:#334155; --line-soft:#1e293b;
+      --accent:#818cf8; --accent-soft:#1e1b4b;
+      --code-bg:#0b1220; --code-ink:#cbd5e1;
+      --warn-bg:#292524; --warn-line:#a16207; --warn-ink:#fde68a;
+      --ok-bg:#052e16; --ok-line:#166534; --ok-ink:#bbf7d0;
+    }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  .wrap{max-width:52rem;margin:0 auto;padding:2.5rem 1.25rem 5rem}
+
+  .cover{padding:3rem 0 2rem;border-bottom:2px solid var(--line)}
+  .kicker{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  h1{font-size:2.4rem;line-height:1.15;margin:.6rem 0 .5rem;letter-spacing:-.02em}
+  .sub{color:var(--ink-soft);font-size:1.02rem;margin:0 0 1.4rem;max-width:38rem}
+  .meta{display:flex;flex-wrap:wrap;gap:.5rem}
+  .pill{background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:.25rem .7rem;font-size:.75rem;font-weight:600}
+
+  .toc{margin:2rem 0 0;border:1px solid var(--line);border-radius:12px;padding:1.25rem 1.5rem;background:var(--card)}
+  .toc h2{margin:0 0 .75rem;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);border:0;padding:0}
+  .toc ol{margin:0;padding-left:1.25rem;columns:2;column-gap:2rem}
+  @media (max-width:640px){.toc ol{columns:1}}
+  .toc li{margin:.2rem 0;break-inside:avoid}
+  .toc a{color:var(--ink);text-decoration:none}
+  .toc a:hover{color:var(--accent)}
+  .toc .cnt{color:var(--ink-faint);font-size:.8rem}
+
+  h2{
+    font-size:1.35rem;margin:3rem 0 .35rem;padding-top:1.25rem;
+    border-top:2px solid var(--line);letter-spacing:-.01em;
+  }
+  h2 .num{color:var(--accent);font-variant-numeric:tabular-nums}
+  .lead{color:var(--ink-soft);font-size:.92rem;margin:0 0 1.5rem}
+
+  .q{margin:0 0 1.5rem;padding-left:1rem;border-left:3px solid var(--line)}
+  .q:hover{border-left-color:var(--accent)}
+  .q h3{font-size:1rem;margin:0 0 .5rem;line-height:1.45;font-weight:700}
+  .q h3 .n{display:inline-block;min-width:2.7rem;color:var(--accent);font-variant-numeric:tabular-nums;font-weight:800;font-size:.82rem}
+  .q p{margin:.5rem 0}
+  .q ul,.q ol{margin:.5rem 0;padding-left:1.3rem}
+  .q li{margin:.25rem 0}
+  strong{font-weight:700}
+  em{color:var(--ink-soft)}
+
+  code{
+    font-family:ui-monospace,SFMono-Regular,"SF Mono",Consolas,"Liberation Mono",monospace;
+    font-size:.86em;background:var(--code-bg);color:var(--code-ink);
+    padding:.1em .35em;border-radius:4px;
+  }
+  pre{
+    background:var(--code-bg);border:1px solid var(--line);border-radius:8px;
+    padding:.85rem 1rem;overflow-x:auto;margin:.75rem 0;
+  }
+  pre code{background:none;padding:0;font-size:.82rem;line-height:1.55;display:block}
+
+  .fu,.gotcha,.win{border-radius:8px;padding:.6rem .85rem;margin:.7rem 0;font-size:.9rem;border-left:3px solid}
+  .fu{background:var(--accent-soft);border-color:var(--accent)}
+  .gotcha{background:var(--warn-bg);border-color:var(--warn-line);color:var(--warn-ink)}
+  .win{background:var(--ok-bg);border-color:var(--ok-line);color:var(--ok-ink)}
+  .fu b,.gotcha b,.win b{display:block;font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.15rem;opacity:.85}
+
+  .rapid{width:100%;border-collapse:collapse;font-size:.9rem;margin:1rem 0}
+  .rapid td{border-bottom:1px solid var(--line-soft);padding:.55rem .5rem;vertical-align:top}
+  .rapid td:first-child{width:42%;font-weight:600}
+  .scroll{overflow-x:auto}
+
+  .noprint{margin:1.5rem 0 0}
+  .btn{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:.6rem 1.1rem;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit}
+  @page{size:A4;margin:15mm 14mm}
+  @media print{
+    :root{
+      --ink:#0f172a;--ink-soft:#475569;--ink-faint:#64748b;--bg:#fff;--card:#fff;
+      --line:#cbd5e1;--line-soft:#e2e8f0;--accent:#4338ca;--accent-soft:#eef2ff;
+      --code-bg:#f6f8fa;--code-ink:#111827;
+      --warn-bg:#fffbeb;--warn-line:#d97706;--warn-ink:#78350f;
+      --ok-bg:#f0fdf4;--ok-line:#16a34a;--ok-ink:#14532d;
+    }
+    body{font-size:10.5pt;background:#fff;color:#0f172a}
+    .wrap{max-width:none;padding:0}
+    .noprint{display:none}
+    h1{font-size:24pt}
+    h2{font-size:13pt;page-break-before:always;page-break-after:avoid;margin-top:0}
+    h2#s1{page-break-before:auto}
+    h3{page-break-after:avoid}
+    .q{page-break-inside:avoid;margin-bottom:.85rem}
+    pre{page-break-inside:avoid;font-size:8.5pt}
+    .toc{page-break-after:always}
+    .fu,.gotcha,.win{page-break-inside:avoid}
+    a{color:inherit;text-decoration:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="cover">
+  <div class="kicker">Interview Revision · Real-Time · Next.js + Node</div>
+  <h1>WebSockets &amp; Socket.IO<br>Interview Q&amp;A</h1>
+  <p class="sub">Everything behind the chat app — the protocol, the handshake, rooms, delivery guarantees, acks, and scaling. Written as answers you can say out loud.</p>
+  <div class="meta">
+    <span class="pill">Protocol internals</span>
+    <span class="pill">Socket.IO</span>
+    <span class="pill">Rooms &amp; auth</span>
+    <span class="pill">Delivery &amp; acks</span>
+    <span class="pill">Scaling</span>
+  </div>
+  <div class="noprint">
+    <button class="btn" onclick="window.print()">Save as PDF ↓</button>
+  </div>
+</header>
+
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#s1">Protocols &amp; the network</a></li>
+    <li><a href="#s2">HTTP vs WebSocket</a></li>
+    <li><a href="#s3">The WebSocket handshake</a></li>
+    <li><a href="#s4">Real-time options compared</a></li>
+    <li><a href="#s5">Raw ws vs Socket.IO</a></li>
+    <li><a href="#s6">CORS &amp; why it exists</a></li>
+    <li><a href="#s7">Connections vs people · rooms</a></li>
+    <li><a href="#s8">Auth &amp; trusting the client</a></li>
+    <li><a href="#s9">Emit variants</a></li>
+    <li><a href="#s10">Namespaces vs rooms</a></li>
+    <li><a href="#s11">Heartbeat &amp; disconnects</a></li>
+    <li><a href="#s12">Delivery guarantees</a></li>
+    <li><a href="#s13">Acknowledgements (acks)</a></li>
+    <li><a href="#s14">Scaling to many servers</a></li>
+    <li><a href="#s15">When NOT to use WebSockets</a></li>
+    <li><a href="#s16">Rapid fire</a></li>
+  </ol>
+</nav>
+
+<!-- 1 -->
+<h2 id="s1"><span class="num">1.</span> Protocols &amp; the network</h2>
+<p class="lead">The foundation. Real-time only makes sense once you know what a connection actually is.</p>
+
+<div class="q">
+  <h3><span class="n">1.1</span> What is a protocol?</h3>
+  <p>An agreed set of rules for how two machines talk — the format of messages and the order they come in. HTTP, WebSocket, TCP, IP are all protocols. Like a shared language: both sides must speak it or the bytes are meaningless.</p>
+</div>
+
+<div class="q">
+  <h3><span class="n">1.2</span> IP vs port vs connection?</h3>
+  <ul>
+    <li><strong>IP</strong> identifies the <em>machine</em>.</li>
+    <li><strong>Port</strong> identifies a <em>program</em> on that machine (a server listens on one, e.g. 5000).</li>
+    <li><strong>Connection</strong> is a live conversation between two of them.</li>
+  </ul>
+  <p>A connection is identified by a <strong>four-tuple</strong>: <code>(source IP, source port, destination IP, destination port)</code>. Change any one and it's a different connection.</p>
+  <div class="fu"><b>Follow-up · "How do 3 tabs to the same server stay separate?"</b>
+  Same destination IP+port, but each tab gets a <strong>different source port</strong>, so all four-tuples are unique. That's how the server keeps them apart.</div>
+</div>
+
+<div class="q">
+  <h3><span class="n">1.3</span> What are ephemeral ports?</h3>
+  <p>When your browser makes a connection, the OS picks a temporary <strong>source</strong> port from a high range (roughly 49152–65535). The server's port is fixed and known; the client's is throwaway, assigned per connection.</p>
+</div>
+
+<div class="q">
+  <h3><span class="n">1.4</span> TCP vs UDP?</h3>
+  <p><strong>TCP</strong> — reliable, ordered, connection-based. Delivers every byte in order or retries. Used by HTTP and WebSocket. <strong>UDP</strong> — fire-and-forget, no ordering or delivery guarantee, but faster. Used for video calls, games, DNS, and HTTP/3 (over QUIC).</p>
+</div>
+
+<!-- 2 -->
+<h2 id="s2"><span class="num">2.</span> HTTP vs WebSocket</h2>
+<p class="lead">Why the web needed a second protocol for real-time.</p>
+
+<div class="q">
+  <h3><span class="n">2.1</span> Why can't plain HTTP do real-time?</h3>
+  <p>HTTP is <strong>request/response</strong> and client-initiated. The server can't speak unless the client asks first, and each exchange is a fresh round trip with full headers. There's no way for the server to <em>push</em> — which is exactly what chat, notifications, and live data need.</p>
+</div>
+
+<div class="q">
+  <h3><span class="n">2.2</span> Define WebSocket for an interviewer.</h3>
+  <p>"A protocol that upgrades a single HTTP connection into a <strong>persistent, two-way (full-duplex)</strong> channel over the same TCP connection. After the handshake, either side can send a message any time, with almost no overhead per message — no new request, no repeated headers."</p>
+</div>
+
+<!-- 3 -->
+<h2 id="s3"><span class="num">3.</span> The WebSocket handshake</h2>
+<p class="lead">How a normal HTTP request becomes a WebSocket. Interviewers love this one.</p>
+
+<div class="q">
+  <h3><span class="n">3.1</span> Walk through the handshake.</h3>
+  <ol>
+    <li>Client sends a normal HTTP <code>GET</code> with special headers: <code>Upgrade: websocket</code>, <code>Connection: Upgrade</code>, and a random <code>Sec-WebSocket-Key</code>.</li>
+    <li>If the server agrees, it replies <strong><code>101 Switching Protocols</code></strong>.</li>
+    <li>The <strong>same TCP connection</strong> is now spoken in the WebSocket protocol instead of HTTP — no second connection is opened.</li>
+  </ol>
+  <div class="win"><b>Key phrase</b> "It starts as HTTP and is upgraded in place. One TCP connection, new language after 101."</div>
+</div>
+
+<div class="q">
+  <h3><span class="n">3.2</span> What does "once upgraded, it's only a WebSocket" mean?</h3>
+  <p>After the <code>101</code>, that connection can no longer carry HTTP requests. The bytes flowing over it are WebSocket <strong>frames</strong>, not HTTP messages. It stopped being an HTTP conversation and became a WebSocket one — same pipe, different rules.</p>
+</div>
+
+<div class="q">
+  <h3><span class="n">3.3</span> ws:// vs wss:// ? What are frames?</h3>
+  <p><code>ws://</code> is plaintext; <code>wss://</code> is WebSocket over TLS (encrypted), the equivalent of <code>https</code>. Always use <code>wss</code> in production.</p>
+  <p>Data travels in <strong>frames</strong> — small packets with an <em>opcode</em> saying what they are: text, binary, ping, pong, or close. Ping/pong frames are how the connection is health-checked.</p>
+</div>
+
+<!-- 4 -->
+<h2 id="s4"><span class="num">4.</span> Real-time options compared</h2>
+<p class="lead">The classic "WebSocket vs SSE vs polling" question, from crude to full-duplex.</p>
+
+<div class="q">
+  <h3><span class="n">4.1</span> Short polling vs long polling?</h3>
+  <p><strong>Short polling</strong> — client asks "anything new?" on a timer. Simple, but most responses are empty (wasteful) and you're seconds behind.</p>
+  <p><strong>Long polling</strong> — server holds the request open until it has data, sends <strong>one</strong> message, then the connection <strong>closes</strong> and the client immediately reopens. Near real-time, but one message per request and constant churn.</p>
+</div>
+
+<div class="q">
+  <h3><span class="n">4.2</span> Isn't long polling the same as SSE — both hold the request open?</h3>
+  <p>No — the difference is <strong>messages per request</strong>. Long polling holds it open for <em>one</em> answer, then closes and reopens. <strong>SSE streams many</strong> messages down the <em>same</em> open connection, never closing between them.</p>
+  <div class="fu"><b>Phone analogy</b> Long polling = they tell you one thing then hang up, you call back. SSE = you call once and they keep talking without hanging up.</div>
+</div>
+
+<div class="q">
+  <h3><span class="n">4.3</span> What is SSE and when do you use it?</h3>
+  <p><strong>Server-Sent Events</strong> — one long-lived HTTP response the server keeps writing to. <strong>One-way</strong> (server → client), auto-reconnects natively (with <code>Last-Event-ID</code> to resume), runs over plain HTTP with no Upgrade. Text only. Perfect for notifications, live feeds, tickers, progress bars.</p>
+</div>
+
+<div class="q">
+  <h3><span class="n">4.4</span> The decision, in one line?</h3>
+  <div class="win"><b>Say this</b> "If only the server pushes, SSE is simpler and cheaper. If both sides talk, WebSocket. Polling is the fallback when you can't hold a connection open."</div>
+</div>
+
+<!-- 5 -->
+<h2 id="s5"><span class="num">5.</span> Raw ws vs Socket.IO</h2>
+<p class="lead">They are not the same thing, and not interoperable.</p>
+
+<div class="q">
+  <h3><span class="n">5.1</span> Is Socket.IO just WebSockets?</h3>
+  <p>No. Socket.IO is a <strong>library with its own protocol layered on top of</strong> WebSocket (and long-polling as fallback). A raw <code>ws</code> client <strong>cannot</strong> talk to a Socket.IO server and vice-versa — the message format differs. Socket.IO adds: auto-reconnect, rooms, named events, acknowledgements, heartbeat, multiplexed namespaces, and a polling fallback.</p>
+</div>
+
+<div class="q">
+  <h3><span class="n">5.2</span> Why pick raw ws vs Socket.IO?</h3>
+  <p><strong>Raw ws</strong> — lightweight, you control everything, but you build reconnect/rooms/acks yourself. <strong>Socket.IO</strong> — batteries included; you get the hard parts free at the cost of a heavier client and its own protocol.</p>
+</div>
+
+<!-- 6 -->
+<h2 id="s6"><span class="num">6.</span> CORS &amp; why it exists</h2>
+
+<div class="q">
+  <h3><span class="n">6.1</span> If the server sees the source IP, why does CORS exist?</h3>
+  <p>Because IP identifies the <em>machine</em>, not <em>which web page's JavaScript</em> is making the request. A malicious page on <code>evil.com</code>, open in your browser, sends a request with your <strong>same IP and your valid cookies</strong>. The server can't tell it apart by IP.</p>
+  <p><strong>CORS</strong> uses the <code>Origin</code> header — set by the browser, not fakeable by page JS — to say "which site's code is this from," so the server can allow or reject it. It defends against a different threat than IP identification.</p>
+</div>
+
+<div class="q">
+  <h3><span class="n">6.2</span> Does Socket.IO need its own CORS config?</h3>
+  <p>Yes. The Socket.IO handshake bypasses your Express middleware, so you configure CORS on the <code>Server</code> itself:</p>
+<pre><code>const io = new Server(server, {
+  cors: { origin: "http://localhost:3000", credentials: true }
+});</code></pre>
+</div>
+
+<!-- 7 -->
+<h2 id="s7"><span class="num">7.</span> Connections vs people · rooms</h2>
+<p class="lead">The single most important mental model for a real chat app.</p>
+
+<div class="q">
+  <h3><span class="n">7.1</span> socket.id vs a database user id?</h3>
+  <p><code>socket.id</code> identifies <strong>one connection</strong> — it changes on every reconnect and a person with two tabs has two of them. A database <code>_id</code> identifies the <strong>person</strong> — permanent. Never key long-lived data (conversations, presence) on <code>socket.id</code>.</p>
+  <div class="win"><b>One-liner</b> "socket.id is a connection, not a person — so you room by user id."</div>
+</div>
+
+<div class="q">
+  <h3><span class="n">7.2</span> What is a room?</h3>
+  <p>A <strong>server-side label</strong> attached to sockets. The browser never knows rooms exist. Under the hood it's a map of <code>roomName → Set of socket ids</code>.</p>
+<pre><code>socket.join("room-42");
+io.to("room-42").emit("event", data);   // to everyone wearing the label
+socket.leave("room-42");</code></pre>
+  <p>Every socket <strong>auto-joins a room named after its own socket.id</strong> — which is why <code>io.to(someSocketId).emit(...)</code> targets exactly one connection.</p>
+</div>
+
+<div class="q">
+  <h3><span class="n">7.3</span> Why room by user id instead of socket id?</h3>
+  <p>Because you want to reach a <em>person</em>, not a connection. Join a room named after the user's <code>_id</code>:</p>
+<pre><code>socket.join(user._id);          // on connect
+io.to(user._id).emit("message:new", msg);  // reaches ALL their tabs</code></pre>
+  <p>Now five tabs are five sockets in one room. This is what makes WhatsApp Web and your phone stay in sync — and it survives reconnects, because the socket re-joins the room.</p>
+</div>
+
+<!-- 8 -->
+<h2 id="s8"><span class="num">8.</span> Auth &amp; trusting the client</h2>
+
+<div class="q">
+  <h3><span class="n">8.1</span> How does the server learn who a connecting socket is?</h3>
+  <p>Best: in the <strong>handshake auth</strong>, sent at connection time — so the server knows immediately, no extra event.</p>
+<pre><code>// client
+socket.auth = { _id: user._id, name };
+socket.connect();
+
+// server
+io.on("connection", (socket) => {
+  const { _id, name } = socket.handshake.auth;
+  if (!_id) return socket.disconnect();
+  socket.data.userId = _id;      // stash it on the socket
+  socket.join(_id);
+});</code></pre>
+  <p><code>socket.auth</code> is auto-resent on every reconnect, so identity survives drops for free — unlike a manual <code>user:join</code> event you'd have to re-emit.</p>
+</div>
+
+<div class="q">
+  <h3><span class="n">8.2</span> Where should <code>from</code> come from on a message?</h3>
+  <p>From the <strong>server's record of the socket</strong> (<code>socket.data.userId</code>), never from the client's payload. The client sends only <code>{ to, text }</code>. If the client supplies <code>from</code>, anyone can forge a message as someone else.</p>
+  <div class="win"><b>Same rule as Express</b> "<code>req.body</code> for what they're acting on, <code>req.user._id</code> for who they are. Never let the client name itself."</div>
+  <div class="gotcha"><b>Real apps</b> The id should come from a <em>verified</em> session cookie or JWT decoded in a Socket.IO middleware (<code>io.use(...)</code>), not a plain value the client hands over. A lab sends it directly; production verifies it.</div>
+</div>
+
+<div class="q">
+  <h3><span class="n">8.3</span> Async socket handlers — the trap.</h3>
+  <p>Socket.IO does <strong>not</strong> catch errors from your handler. An <code>async</code> handler that rejects becomes an <strong>unhandled rejection</strong> — and if your server exits on that, one bad DB write kills everyone's connection. Every async socket handler needs its own try/catch. There is no <code>next</code> and no error middleware like Express has.</p>
+</div>
+
+<!-- 9 -->
+<h2 id="s9"><span class="num">9.</span> Emit variants</h2>
+<p class="lead">Who receives it — especially whether the sender is included.</p>
+
+<div class="q">
+  <h3><span class="n">9.1</span> The five you must know.</h3>
+<pre><code>socket.emit("e", d)            // only the sender
+io.emit("e", d)                // everyone, sender included
+socket.broadcast.emit("e", d)  // everyone EXCEPT the sender
+io.to(room).emit("e", d)       // a room (sender included if in it)
+socket.to(room).emit("e", d)   // a room, EXCEPT the sender</code></pre>
+  <div class="win"><b>Pattern</b> "<code>socket.</code> narrows to <em>not me</em>; <code>io.</code> means <em>everyone in scope</em>."</div>
+</div>
+
+<!-- 10 -->
+<h2 id="s10"><span class="num">10.</span> Namespaces vs rooms</h2>
+
+<div class="q">
+  <h3><span class="n">10.1</span> What's the difference?</h3>
+  <p><strong>Namespace</strong> — a separate channel with its own handlers and middleware, multiplexed over the same connection. For separating <em>features or access levels</em> (<code>/admin</code>, <code>/chat</code>). You define them in code.</p>
+  <p><strong>Room</strong> — a dynamic subgroup <em>inside</em> a namespace, purely a broadcast target, created and destroyed at runtime. For picking an <em>audience</em>.</p>
+  <div class="win"><b>Say this</b> "Namespace = a different endpoint with its own logic. Room = a dynamic subgroup you broadcast to. One socket lives in one namespace but many rooms."</div>
+</div>
+
+<!-- 11 -->
+<h2 id="s11"><span class="num">11.</span> Heartbeat &amp; disconnects</h2>
+
+<div class="q">
+  <h3><span class="n">11.1</span> How are dead connections detected?</h3>
+  <p>A TCP connection can die <strong>silently</strong> — laptop sleeps, wifi drops — and still look alive. So Socket.IO runs a <strong>heartbeat</strong>: every <code>pingInterval</code> (~25s) the server pings; the client must pong within <code>pingTimeout</code> (~20s), or the socket is declared dead and <code>disconnect</code> fires with reason <em>ping timeout</em>.</p>
+</div>
+
+<div class="q">
+  <h3><span class="n">11.2</span> Do raw WebSockets have heartbeats too?</h3>
+  <p>The <strong>protocol provides the tool</strong> (ping/pong control frames) but <strong>not the strategy</strong>. With raw <code>ws</code> you write the loop yourself:</p>
+<pre><code>wss.on("connection", (ws) =&gt; {
+  ws.isAlive = true;
+  ws.on("pong", () =&gt; { ws.isAlive = true; });
+});
+setInterval(() =&gt; {
+  wss.clients.forEach((ws) =&gt; {
+    if (!ws.isAlive) return ws.terminate();  // dead → drop
+    ws.isAlive = false;
+    ws.ping();
+  });
+}, 30000);</code></pre>
+  <p>Socket.IO's heartbeat is <strong>on by default</strong> — you only tune it. Raw <code>ws</code>, you build it.</p>
+</div>
+
+<!-- 12 -->
+<h2 id="s12"><span class="num">12.</span> Delivery guarantees</h2>
+<p class="lead">A senior-level tell. Be precise.</p>
+
+<div class="q">
+  <h3><span class="n">12.1</span> Does Socket.IO guarantee delivery?</h3>
+  <p>No. It guarantees <strong>ordering per connection</strong> — messages from one socket arrive in the order sent — but <strong>not delivery</strong>. Default is <strong>at-most-once</strong>: if the client is disconnected when the server emits, that message is <em>silently lost</em>.</p>
+  <div class="gotcha"><b>Ordering is "per connection"</b> Only within one socket. Two tabs = two sockets = no order guarantee between them. After a reconnect it's a new socket, so order across the drop isn't guaranteed either.</div>
+</div>
+
+<div class="q">
+  <h3><span class="n">12.2</span> Name the three delivery semantics.</h3>
+  <ul>
+    <li><strong>At-most-once</strong> — zero or one time, never duplicated, can be lost. (Socket.IO default.)</li>
+    <li><strong>At-least-once</strong> — never lost, can arrive twice (retries).</li>
+    <li><strong>Exactly-once</strong> — the ideal; usually <em>faked</em> with at-least-once + dedupe.</li>
+  </ul>
+</div>
+
+<div class="q">
+  <h3><span class="n">12.3</span> How do you make it reliable?</h3>
+  <ol>
+    <li><strong>Acks + retry</strong> — but retries can duplicate, so tag each message with an id and dedupe on the receiver → at-least-once + idempotency.</li>
+    <li><strong>Persist + re-fetch</strong> — save every message to the DB; on reconnect the client pulls what it missed. The DB is the source of truth, the socket just the fast path. <em>(This is what the chat app does.)</em></li>
+    <li><strong>Connection State Recovery</strong> — Socket.IO replays missed events after a <em>brief</em> drop from a small server-side buffer. Enable explicitly; not durable (a restart wipes it).</li>
+  </ol>
+  <div class="win"><b>Interview line</b> "Socket.IO guarantees order, not delivery. For durability you persist and re-sync on reconnect, or ack-and-retry with idempotency. I persisted to Mongo, so the socket is the fast path and a reconnect re-fetches anything missed."</div>
+</div>
+
+<div class="q">
+  <h3><span class="n">12.4</span> Why persistence over acks?</h3>
+  <p>Acks only confirm the <em>live</em> send. They can't help a user who was offline for ten minutes — there's no connection to ack. Persistence covers both: messages live in the DB, so a reconnecting client just re-fetches. Acks are delivery <em>receipts</em>, not durability.</p>
+</div>
+
+<!-- 13 -->
+<h2 id="s13"><span class="num">13.</span> Acknowledgements (acks)</h2>
+<p class="lead">Request/response layered on top of events.</p>
+
+<div class="q">
+  <h3><span class="n">13.1</span> What is an ack and its syntax?</h3>
+  <p>A callback the <strong>receiver</strong> runs to confirm receipt; its argument flows back to the sender. The <strong>last function argument</strong> to <code>emit</code> is treated as the ack callback.</p>
+<pre><code>// sender — writes the callback
+socket.emit("message:send", data, (res) =&gt; {
+  console.log("confirmed:", res);
+});
+
+// receiver — runs the ack
+socket.on("message:send", (data, ack) =&gt; {
+  save(data);
+  ack({ ok: true });   // ← fires the sender's callback
+});</code></pre>
+</div>
+
+<div class="q">
+  <h3><span class="n">13.2</span> Why always add a timeout?</h3>
+  <p>If the receiver never calls <code>ack</code> (offline, crashed), the sender waits forever. Bound it:</p>
+<pre><code>socket.timeout(5000).emit("message:send", data, (err, res) =&gt; {
+  if (err) retry();   // no ack within 5s
+});
+// or the promise form:
+const res = await socket.timeout(5000).emitWithAck("message:send", data);</code></pre>
+  <p>Note the shape changes to <strong>error-first</strong> <code>(err, res)</code> once you add <code>.timeout()</code>.</p>
+</div>
+
+<div class="q">
+  <h3><span class="n">13.3</span> In a client→server→client flow, where does the ack go?</h3>
+  <p>An ack is <strong>per hop</strong>, not end-to-end. Your cycle is <em>two separate emits</em>, so two possible acks. Rule: <strong>whoever emits writes the callback; whoever receives that emit runs <code>ack()</code></strong>, and the reply goes back only <em>one hop</em>.</p>
+<pre><code>sender  ──emit──►  server      ack1: server → sender    ("server got it")
+server  ──emit──►  recipient   ack2: recipient → server ("recipient got it")</code></pre>
+  <p>There's no single ack from recipient straight back to the sender.</p>
+</div>
+
+<div class="q">
+  <h3><span class="n">13.4</span> So how does "delivered ✓✓" work?</h3>
+  <p>You <strong>chain</strong> two single-hop acks. When the recipient's ack fires on the server, the server emits a <em>new</em> event back to the original sender:</p>
+<pre><code>io.to(to).timeout(5000).emit("message:new", saved, (err) =&gt; {
+  if (!err) io.to(saved.from).emit("message:delivered", { id: saved._id });
+});</code></pre>
+  <p>The sender listens for <code>message:delivered</code> and flips the tick. Socket.IO doesn't do end-to-end for you.</p>
+</div>
+
+<div class="q">
+  <h3><span class="n">13.5</span> How does the sender "notice" an ack ran? (the mechanism)</h3>
+  <p>A <strong>correlation id</strong>. When you emit with a callback, Socket.IO assigns the emit a unique id, sends it over the wire, and stores <code>{ id → callback }</code>. The receiver's <code>ack</code> is a function pre-bound to that id; calling it sends an <em>ack packet</em> carrying the same id back. The sender matches the id in its map and runs the stored callback. Same trick as matching an HTTP response to its request.</p>
+</div>
+
+<!-- 14 -->
+<h2 id="s14"><span class="num">14.</span> Scaling to many servers</h2>
+
+<div class="q">
+  <h3><span class="n">14.1</span> Why does an in-memory Map of users break at scale?</h3>
+  <p>Production runs several Node processes behind a load balancer. Each has its <strong>own</strong> Map and can't see the others. Alice on server 1, Bob on server 2 → Alice's Map has only Alice, and <code>io.to(bobId)</code> on server 1 finds nobody and <em>silently</em> does nothing. Classic "works on my machine" bug.</p>
+</div>
+
+<div class="q">
+  <h3><span class="n">14.2</span> What fixes it?</h3>
+  <ul>
+    <li><strong>Redis adapter</strong> (<code>@socket.io/redis-adapter</code>) — makes <code>io.emit</code> / <code>io.to()</code> cross process boundaries via Redis pub/sub. Your emit code doesn't change.</li>
+    <li><strong>Presence in Redis</strong> (with a TTL, so a crashed server leaves no ghosts) instead of a local Map.</li>
+    <li><strong>Sticky sessions</strong> on the load balancer — see below.</li>
+  </ul>
+</div>
+
+<div class="q">
+  <h3><span class="n">14.3</span> What are sticky sessions and why are they needed?</h3>
+  <p>Once a client lands on server A, it must <strong>keep</strong> hitting server A. The Socket.IO handshake is several HTTP requests carrying one session id; if request 2 hits a different server it rejects the unknown id (<em>"Session ID unknown"</em>) and the client loops. Config on the LB (nginx <code>ip_hash</code>, ALB stickiness cookie), not app code.</p>
+  <div class="gotcha"><b>Common confusion</b> The Redis adapter does <em>not</em> remove the need for sticky sessions. Adapter = broadcasts reaching other servers. Sticky sessions = the handshake's requests reaching the <em>same</em> server. You need both.</div>
+  <div class="fu"><b>Escape hatch</b> Forcing <code>transports: ["websocket"]</code> skips the polling phase, so there's one connection and stickiness is unnecessary — at the cost of the fallback for networks that block WebSocket.</div>
+</div>
+
+<!-- 15 -->
+<h2 id="s15"><span class="num">15.</span> When NOT to use WebSockets</h2>
+
+<div class="q">
+  <h3><span class="n">15.1</span> When would you avoid them?</h3>
+  <p>Every open WebSocket is a <strong>held-open, stateful connection</strong> — memory and a file descriptor per client, idle most of the time. That cost drives the answer:</p>
+  <ul>
+    <li><strong>Request/response?</strong> Plain HTTP — stateless, cacheable, load-balances trivially.</li>
+    <li><strong>One-way updates?</strong> SSE — cheaper, auto-reconnects, no Upgrade.</li>
+    <li><strong>Server-to-server events?</strong> Webhooks.</li>
+    <li><strong>Serverless / edge?</strong> Often can't hold long connections at all.</li>
+  </ul>
+  <div class="win"><b>Say this</b> "WebSockets trade simplicity for a persistent, stateful connection per client. If you don't need bidirectional real-time, cheaper tools scale more easily. The connection is the cost."</div>
+</div>
+
+<!-- 16 -->
+<h2 id="s16"><span class="num">16.</span> Rapid fire</h2>
+<p class="lead">One-line answers for quick recall.</p>
+
+<div class="scroll">
+<table class="rapid">
+  <tr><td>HTTP status for a successful WS upgrade?</td><td>101 Switching Protocols.</td></tr>
+  <tr><td>Does WS open a second connection?</td><td>No — it upgrades the existing TCP connection in place.</td></tr>
+  <tr><td>ws:// vs wss://</td><td>Plaintext vs TLS-encrypted.</td></tr>
+  <tr><td>Is Socket.IO interoperable with raw ws?</td><td>No — different protocol on top of WebSocket.</td></tr>
+  <tr><td>What transport does Socket.IO fall back to?</td><td>HTTP long-polling.</td></tr>
+  <tr><td>What identifies a TCP connection?</td><td>The four-tuple: src IP, src port, dst IP, dst port.</td></tr>
+  <tr><td>socket.id — connection or person?</td><td>Connection. Changes on reconnect; one per tab.</td></tr>
+  <tr><td>Reach all of one user's tabs?</td><td>Room named after their user id; <code>io.to(userId)</code>.</td></tr>
+  <tr><td>Everyone except the sender?</td><td><code>socket.broadcast.emit</code>.</td></tr>
+  <tr><td>Where does <code>from</code> come from?</td><td>The server's record of the socket, never the client.</td></tr>
+  <tr><td>Namespace vs room?</td><td>Namespace = separate channel/logic; room = dynamic audience.</td></tr>
+  <tr><td>How are dead sockets detected?</td><td>Heartbeat — ping/pong within pingTimeout.</td></tr>
+  <tr><td>Socket.IO's delivery guarantee?</td><td>Order per connection; at-most-once (not delivery).</td></tr>
+  <tr><td>Make delivery reliable?</td><td>Persist + re-fetch, or acks + idempotent retries.</td></tr>
+  <tr><td>What is an ack?</td><td>Receiver-run callback confirming receipt; last fn arg to emit.</td></tr>
+  <tr><td>Ack across a relay?</td><td>Per hop — chain two acks for end-to-end delivered receipts.</td></tr>
+  <tr><td>Scale WS across servers?</td><td>Redis adapter (broadcasts) + sticky sessions (handshake).</td></tr>
+  <tr><td>SSE vs WebSocket?</td><td>SSE one-way over HTTP; WebSocket two-way.</td></tr>
+  <tr><td>Async socket handler risk?</td><td>Unhandled rejection — no error middleware; use try/catch.</td></tr>
+  <tr><td>Does Redis adapter remove sticky sessions?</td><td>No — different problems; you need both.</td></tr>
+</table>
+</div>
+
+<p style="margin-top:3rem;color:var(--ink-faint);font-size:.82rem;border-top:1px solid var(--line);padding-top:1rem">
+  Built from the chat-app learning sessions · Next.js + Node interview prep · keep alongside the Product Catalog guide.
+</p>
+
+</div>
+</body>
+</html>

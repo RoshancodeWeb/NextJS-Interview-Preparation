@@ -14,7 +14,7 @@ export const getChatMessages = asyncHandler(async (req, res) => {
         .lean();
     messages.reverse();
 
-    res.status(200).json({ success: true, messages });
+    res.status(200).json({ success: true,message:"Last 50 Messages Loaded", messages });
 
 
-})
+});
